@@ -8,6 +8,7 @@ pygmentsStyle = "trac"
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 pygmentsCodefencesGuessSyntax = true
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 #pygmentsUseClassic = true
 #pygmentOptions = "linenos=inline"
 #disqusShortname = "XXX"
