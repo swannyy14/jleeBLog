@@ -1,9 +1,9 @@
 ## Hi!
+
 Welcome to my blog about statistics!
 
-This blog will (**finish editing this font page material. This can be edited in content/_index.md**)
-My posts will  but not limited to:
+I will update this blog as I continue my study in statistics. The posts will include topics such as:
 
-- new and fresh concepts that I learn in statistics, which I will try to intuitively explain for the readers
-- examples of various statistical methods and machine learning models using different kinds of data sets
-- analysis on random topics of my choice
+- intuitive explanations of newly learned statistical concepts
+- various statistical methods and machine learning models
+- data analysis

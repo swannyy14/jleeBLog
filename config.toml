@@ -1,7 +1,7 @@
 baseurl = "https://username.github.io"
 DefaultContentLanguage = "en"
 #DefaultContentLanguage = "ja"
-title = "Significantly Stat"
+title = "Casual Inference"
 theme = "beautifulhugo"
 metaDataFormat = "yaml"
 pygmentsStyle = "trac"
@@ -15,10 +15,10 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 #googleAnalytics = "XXX"
 
 [Params]
-#  homeTitle = "Beautiful Hugo Theme" # Set a different text for the header on the home page
-  subtitle = ""
-  logo = "img/avatar-icon.png"
-  favicon = "img/favicon.ico"
+  homeTitle = "Casual Inference" # Set a different text for the header on the home page
+  subtitle = "An insignificant blog significantly on statistics"
+  logo = "img/peace.png"
+  favicon = "img/peace.ico"
   dateFormat = "January 2, 2006"
   commit = false
   rss = false
@@ -46,10 +46,10 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   email = "theghks2@gmail.com"
   facebook = "username"
   #googleplus = "+username" # or xxxxxxxxxxxxxxxxxxxxx
-  github = "username"
+  github = "swannyy14"
   #gitlab = "username"
   #bitbucket = "username"
-  twitter = "username"
+  #twitter = "username"
   #reddit = "username"
   #linkedin = "username"
   #xing = "username"
@@ -73,7 +73,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 [[menu.main]]
     name = "About"
     url = "page/about/"
-    weight = 3
+    weight = 2
 
 [[menu.main]]
     name = "Tags"
