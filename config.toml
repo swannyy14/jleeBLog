@@ -1,4 +1,4 @@
-baseurl = "https://username.github.io"
+baseurl = "https://swannyy14.github.io"
 DefaultContentLanguage = "en"
 #DefaultContentLanguage = "ja"
 title = "Casual Inference"
@@ -16,9 +16,9 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [Params]
   homeTitle = "Casual Inference" # Set a different text for the header on the home page
-  subtitle = "An insignificant blog significantly on statistics"
-  logo = "img/peace.png"
-  favicon = "img/peace.ico"
+  subtitle = "A blog significantly on statistics"
+  logo = "img/linreg.png"
+  favicon = "img/linreg.ico"
   dateFormat = "January 2, 2006"
   commit = false
   rss = false
@@ -44,7 +44,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   name = "John SooHwan Lee"
   website = "yourwebsite.com"
   email = "theghks2@gmail.com"
-  facebook = "username"
+  facebook = "johnswanlee"
   #googleplus = "+username" # or xxxxxxxxxxxxxxxxxxxxx
   github = "swannyy14"
   #gitlab = "username"
