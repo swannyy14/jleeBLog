@@ -1,6 +1,6 @@
 ---
 title: About me
-subtitle: Basic Introduction about myself
+subtitle: Short Introduction about myself
 comments: false
 ---
 <img src="/img/me_thinking_pic.jpg" alt="drawing" width="300px"/>
