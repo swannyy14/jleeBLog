@@ -50,6 +50,7 @@ summary(iris_lm_quad)
 ```
 
 Now the non-linearity problem is gone! It looks as though there is an observation with leverage that is noticeably higher than that of others, but the observation has the Cook's Distance well below 0.5; so I will not investigate further.
+
 Judging from the summary, it is evident that the quadratic polynomial for `Petal.Width` is not very significant. Let's remove that predictor and see how the model turns out.
 
 ```{r}
