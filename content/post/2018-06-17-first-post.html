@@ -10,6 +10,31 @@ subtitle: ''
 
 
 
-<div id="hello-world" class="section level1">
-<h1>hello, world!</h1>
-</div>
+<p>This is the first blog post of my life! I will be using this blog to post about anything that I want to share in statistics. For practice, I will run a linear regression with the <code>iris</code> dataset.</p>
+<pre class="r"><code>names(iris)</code></pre>
+<pre><code>## [1] &quot;Sepal.Length&quot; &quot;Sepal.Width&quot;  &quot;Petal.Length&quot; &quot;Petal.Width&quot; 
+## [5] &quot;Species&quot;</code></pre>
+<pre class="r"><code>iris_lm &lt;- lm(Sepal.Length ~ Petal.Length + Petal.Width, data = iris)
+summary(iris_lm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Sepal.Length ~ Petal.Length + Petal.Width, data = iris)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.18534 -0.29838 -0.02763  0.28925  1.02320 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   4.19058    0.09705  43.181  &lt; 2e-16 ***
+## Petal.Length  0.54178    0.06928   7.820 9.41e-13 ***
+## Petal.Width  -0.31955    0.16045  -1.992   0.0483 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4031 on 147 degrees of freedom
+## Multiple R-squared:  0.7663, Adjusted R-squared:  0.7631 
+## F-statistic:   241 on 2 and 147 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>plot(iris_lm, which = 1)</code></pre>
+<p><img src="/post/2018-06-17-first-post_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre class="r"><code>#iris_lm &lt;- lm(Sepal.Length ~ poly(Petal.Length, 2, ra)</code></pre>

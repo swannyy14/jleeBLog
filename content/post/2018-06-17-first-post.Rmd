@@ -8,4 +8,13 @@ tags: []
 subtitle: ''
 ---
 
-#hello, world!
+This is the first blog post of my life! I will be using this blog to post about anything that I want to share in statistics. For practice, I will run a linear regression with the `iris` dataset.
+
+```{r}
+names(iris)
+iris_lm <- lm(Sepal.Length ~ Petal.Length + Petal.Width, data = iris)
+summary(iris_lm)
+plot(iris_lm, which = 1)
+#iris_lm <- lm(Sepal.Length ~ poly(Petal.Length, 2, ra)
+```
+
