@@ -4,7 +4,7 @@ author: John Lee
 date: '2018-06-17'
 slug: first-post
 categories: []
-tags: []
+tags: [linear regression, prediction]
 subtitle: ''
 ---
 
@@ -54,6 +54,7 @@ plot(iris_lm)</code></pre>
 par(mfrow = c(2, 2))
 plot(iris_lm_quad)</code></pre>
 <p><img src="/post/2018-06-17-first-post_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Now the non-linearity problem is gone! It looks as though there is an observation with leverage that is noticeably higher than that of others, but the observation has the Cook’s Distance well below 0.5; so I will not investigate further.</p>
 <pre class="r"><code>summary(iris_lm_quad)</code></pre>
 <pre><code>## 
 ## Call:
@@ -83,7 +84,6 @@ plot(iris_lm_quad)</code></pre>
 ## Residual standard error: 0.3651 on 115 degrees of freedom
 ## Multiple R-squared:  0.8006, Adjusted R-squared:  0.7937 
 ## F-statistic: 115.4 on 4 and 115 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>Now the non-linearity problem is gone! It looks as though there is an observation with leverage that is noticeably higher than that of others, but the observation has the Cook’s Distance well below 0.5; so I will not investigate further.</p>
 <p>Judging from the summary, it is evident that the quadratic polynomial for <code>Petal.Width</code> is not very significant. Let’s remove that predictor and see how the model turns out.</p>
 <pre class="r"><code>iris_lm_quad &lt;- update(iris_lm_quad, Sepal.Length ~ poly(Petal.Length, 2, raw = TRUE) + Petal.Width)
 summary(iris_lm_quad)</code></pre>

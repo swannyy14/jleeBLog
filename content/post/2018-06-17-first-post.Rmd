@@ -4,7 +4,7 @@ author: John Lee
 date: '2018-06-17'
 slug: first-post
 categories: []
-tags: []
+tags: [linear regression, prediction]
 subtitle: ''
 ---
 
@@ -46,11 +46,13 @@ iris_lm_quad <- lm(Sepal.Length ~ poly(Petal.Length, 2, raw = TRUE) + poly(Petal
                    data = iris_train)
 par(mfrow = c(2, 2))
 plot(iris_lm_quad)
-summary(iris_lm_quad)
 ```
 
 Now the non-linearity problem is gone! It looks as though there is an observation with leverage that is noticeably higher than that of others, but the observation has the Cook's Distance well below 0.5; so I will not investigate further.
 
+```{r}
+summary(iris_lm_quad)
+```
 Judging from the summary, it is evident that the quadratic polynomial for `Petal.Width` is not very significant. Let's remove that predictor and see how the model turns out.
 
 ```{r}
