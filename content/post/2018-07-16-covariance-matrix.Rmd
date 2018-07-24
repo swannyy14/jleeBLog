@@ -9,3 +9,124 @@ tags:
 subtitle: ''
 draft: true
 ---
+In my first machine learning class, in order to learn about the theory behind PCA (Principal Component Analysis), we had to learn about variance-covariance matrix. I was concurrently taking a basic theoretical probability and statistics, so even the idea of variance was still vague to me. Despite the repeated attempts to understand covariance by looking at its mathematical definition over and over again, I still had trouble fully capturing the intuition behind the covariance between two random variables. Even now, application and verification of correct usage of mathematical properties of covariance requires intensive googling. I want to use this post to review covariance and its properties.
+
+**Basic Idea** : Covariance of two random variables $X$ and $Y$, also written as $cov[X,Y]$ and $\sigma_{XY}$, is a strength of linear relationship between two random variables. It can be used to determine the directional strength of relationship between two random variables. Covariance is easily visualized by observing a distribution of bivariate normal distribution.
+
+Consider a bivariate normal distribution (non degenerate) with random variables X and Y, where $\mu_X, \mu_Y = 0$, $\sigma_X, \sigma_Y = 1$, and $\sigma_{XY}$ takes different values.
+```{r}
+library(MASS)
+library(mixtools)
+set.seed(1234)
+gen_binormplot <- function(N, mu_vec, Sigma, ...){ #function that creates a plot for randomly generated bivariate normal distribution
+  biv_norm <- mvrnorm(
+    n = N,
+    mu = mu_vec,
+    Sigma = Sigma
+  )
+  plot(x = biv_norm[, 1],
+       y = biv_norm[, 2],
+       main = bquote('bivariate normal distribution when' ~ sigma['xy'] == .(Sigma[2])),
+       xlab = 'x',
+       ylab = 'y',
+       col = 'dark grey',
+       ...)
+  for (ellipse_alpha in seq(0, 1, 0.2)){
+    ellipse(mu_vec,
+            Sigma,
+            alpha = ellipse_alpha,
+            type = 'l',
+            col = 'red',
+            lwd = 1.5)
+  }
+}
+
+N <- 1000
+mu_x <- 0; mu_y <- 0
+var_x <- 1; var_y <- 1
+cov_xy <- c(-0.9, 0.9, -0.7, 0.7, -0.3, 0.3, 0)
+
+par(mfrow = c(2,2), mai = c(0.5, 0.5, 0.5, 0.5))
+for (plt in 1:length(cov_xy)){
+  Sig <- matrix(c(var_x, cov_xy[plt], cov_xy[plt], var_y), nrow = 2, byrow = TRUE)
+  gen_binormplot(N, c(mu_x, mu_y), Sig, xlim = c(-3, 3), ylim = c(-3, 3))
+}
+``` 
+The ellipses show the region in which a certain portion of the points from a bivariate normal distribution falls into. The outermost ellipse contains 95% of the points. Also, the ellipses allows us to see more easily the general trend that the two random variables have. As you can see, *negative covariance is associated with inverse relationship between X and Y*, and *positive covariance is associated with direct relationship*. Furthermore, the ellipses tend to get wider as the absolute value of covariance decreases. This is because lower absoluate value of covariance is regarded as the two random variables having a "weaker" relationship. In fact, the ellipses in the case where $\sigma_{XY} = 0$ would be a perfect circle had the plot size been square (which is also ascribed to the variance of X and Y being equal).
+
+**Mathematical Definition**: $Cov[X, Y] = E\big[(X-E[X])(Y-E[Y])\big]$
+
+In words, the covariance of random variables $X$ and $Y$ is an expectation of the product of the two variables' deviation from the mean.
+
+From this definition, I like to understand the previously seen trend (where negative covariance is related to inverse relationship and positive covariance is related to direct relationship) by thinking of extreme cases. If X and Y were to have inverse (linear) relationship, where increasing X is related to decreasing Y, then higher values of X, which is above its mean will be paired with lower values of Y, which is below the mean. Then the deviation for X and Y will have opposite signs. So the expected value of their product would be negative. Similar reason applies for positive covariance.
+
+Covariance can also be written as: $Cov[X, Y] = E[XY] - E[X]E[Y]$.
+
+With this formula, it is easier to see why two independent random variables have covariance of 0, since for two independent random variables X and Y, $E[XY] = E[X]E[Y]$. However, the case for the converse is not true. 
+
+A simple example:
+
+$X \sim unif(-1, 1)$
+
+$Y = X^2$
+
+Then $Cov[X, Y] = E[XY] - E[X]E[Y] = E[X^3] - E[X]E[X^2] = 0 - 0 \times E[X^2] = 0$, but X and Y are clearly dependent.
+
+Plot of samples from these two random variables will look like
+```{r}
+x <- runif(n = 100, min = -1, max = 1); y <- x^2
+plot(x = x, y = y, xlim = c(-1.5, 1.5), ylim = c(-0.5, 1.5), xlab = "X", ylab = "Y")
+```
+
+Clearly the relationship between the two random variables is not linear, thus covariance would not be a good method to measure the strength of relationship between the two random variables.
+
+The strength of linear relationship between two random variables is hard to determine by solely looking at the covariance because the value depends on how the random variables are scaled. Hence the covariance is often normalized into Pearson correlation coefficient ($\rho$), which ranges from -1 to 1, so that it is easier to interpret. 
+
+The definition of correlation coefficient is given by: $$\rho_{_{XY}} = \dfrac{Cov[X,Y]}{Sd[X]Sd[Y]} = \dfrac{\sigma_{_{XY}}}{\sigma_{_X}\sigma_{_Y}}$$
+where $Sd$ is standard deviation. This is easier to interpret than covariance because it is scaled down to in between -1 and 1. Closer absolute value to 1 means that the linear relationship is stronger.
+
+**Properties of covariance**
+
+$Cov[X, a] = 0$ 
+
+where a is a constant. In words covariance between a random variable and a constant is 0.
+
+$Cov[X,X] = Var[X]$ 
+
+Covariance of a random variable with itself is a variance.
+
+$Cov[X,Y] = Cov[Y,X]$ 
+
+Covariance of two random variables is the same when the order is flipped. This property leads to the variance-covariance matrix being symmetric
+
+$Cov[aX,bY] = abCov[X,Y]$ 
+
+This property tells me that covariance multiplicately scales corresponding to the changes in the random variables X and Y. This is due to linearity of expectation. The coefficient for each random variable can be pulled out individually because covariance is an expected value of the *product* of each random variables. Different scaling doesn't change the strength of relationship, even though higher covariance deceptively indicates so (I could be the only person that had this misconception).
+
+```{r}
+N <- 1000
+mu_x <- 5; mu_y <- 5
+var_x <- 1; var_y <- 1
+cov_xy <- 0.7
+
+bivnorm <- mvrnorm(n = N, mu = c(mu_x, mu_y), Sigma = matrix(c(var_x, cov_xy, cov_xy, var_y), nrow = 2, byrow = TRUE))
+par(mfrow = c(1, 2))
+plot(bivnorm[,1], bivnorm[,2], xlim = c(1, 9), ylim = c(1, 9), xlab = 'X', ylab = 'Y')
+plot(10*bivnorm[,1], bivnorm[,2], xlim = c(10, 90), ylim = c(1, 9), xlab = '10 * X', ylab = 'Y')
+```
+
+$Cov[X + a, Y + b] = Cov[X,Y]$
+
+Adding constants to random variables won't change the covariance, like how it doesn't change variance.
+
+$Cov[aX + bY,cW + dZ] = acCov[X,W] + bcCov[Y,W] + adCov[X,Z] + bdCov[Y,Z]$
+
+If each coordinate is a linear combination of random variables, then each random variable 'term' can be taken out individually. Hence the covariance is equivalent to the summation of the covariance of each 'pair' of random variables.
+
+**Sample Covariance**
+
+Most of the times population parameters will be unknown and I'll have to use samples to calculate the covariance between random variabls. The formula for sample covariance is as follows:
+
+$$Cov[X,Y] = \dfrac{1}{n-1}\sum_{i=i}^{n}(X_i - \bar{X})(Y_i - \bar{Y})$$
+
+Geometrically speaking, covariance could be seen as the sum of area of rectangles created.
