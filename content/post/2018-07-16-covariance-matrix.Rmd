@@ -9,7 +9,7 @@ tags:
 subtitle: ''
 draft: true
 ---
-In my first machine learning class, in order to learn about the theory behind PCA (Principal Component Analysis), we had to learn about variance-covariance matrix. I was concurrently taking a basic theoretical probability and statistics, so even the idea of variance was still vague to me. Despite the repeated attempts to understand covariance by looking at its mathematical definition over and over again, I still had trouble fully capturing the intuition behind the covariance between two random variables. Even now, application and verification of correct usage of mathematical properties of covariance requires intensive googling. I want to use this post to review covariance and its properties.
+In my first machine learning class, in order to learn about the theory behind PCA (Principal Component Analysis), we had to learn about variance-covariance matrix. I was concurrently taking a basic theoretical probability and statistics, so even the idea of variance was still vague to me. Despite the repeated attempts to understand covariance, I still had trouble fully capturing the intuition behind the covariance between two random variables. Even now, application and verification of correct usage of mathematical properties of covariance requires intensive googling. I want to use this post to review covariance and its properties.
 
 **Basic Idea** : Covariance of two random variables $X$ and $Y$, also written as $cov[X,Y]$ and $\sigma_{XY}$, is a strength of linear relationship between two random variables. It can be used to determine the directional strength of relationship between two random variables. Covariance is easily visualized by observing a distribution of bivariate normal distribution.
 
@@ -62,7 +62,7 @@ From this definition, I like to understand the previously seen trend (where nega
 
 Covariance can also be written as: $Cov[X, Y] = E[XY] - E[X]E[Y]$.
 
-With this formula, it is easier to see why two independent random variables have covariance of 0, since for two independent random variables X and Y, $E[XY] = E[X]E[Y]$. However, the case for the converse is not true. 
+With this formula, it is easier to see why two independent random variables have covariance of 0, since for two independent random variables X and Y, $E[XY] = E[X]E[Y]$. However, the converse is not always true. 
 
 A simple example:
 
@@ -78,7 +78,7 @@ x <- runif(n = 100, min = -1, max = 1); y <- x^2
 plot(x = x, y = y, xlim = c(-1.5, 1.5), ylim = c(-0.5, 1.5), xlab = "X", ylab = "Y")
 ```
 
-Clearly the relationship between the two random variables is not linear, thus covariance would not be a good method to measure the strength of relationship between the two random variables.
+Clearly the relationship between the two random variables is not linear, thus covariance alone would not be a good method to measure the strength of relationship between the two random variables.
 
 The strength of linear relationship between two random variables is hard to determine by solely looking at the covariance because the value depends on how the random variables are scaled. Hence the covariance is often normalized into Pearson correlation coefficient ($\rho$), which ranges from -1 to 1, so that it is easier to interpret. 
 
@@ -125,8 +125,19 @@ If each coordinate is a linear combination of random variables, then each random
 
 **Sample Covariance**
 
-Most of the times population parameters will be unknown and I'll have to use samples to calculate the covariance between random variabls. The formula for sample covariance is as follows:
+Usually population parameters will be unknown and I'll have to use samples to calculate the covariance. The formula for sample covariance is as follows:
 
 $$Cov[X,Y] = \dfrac{1}{n-1}\sum_{i=i}^{n}(X_i - \bar{X})(Y_i - \bar{Y})$$
 
-Geometrically speaking, covariance could be seen as the sum of area of rectangles created.
+This formula tells me that , geometrically speaking, covariance could be seen as the sum of area of rectangles created by origin and each coordinates of the random variable pairs after they have been centered.
+
+This [blog](https://stats.seandolinar.com/covariance-different-ways-to-explain/) translates the calculation of covariance to geometrical sense nicely.
+
+**Moving to variance-covariance matrix**
+
+Variance-covariance matrix allows us to see covariance of all pairs of components in a random vector. For a random vector $\vec{X}$ of length $N$, the variance-covariance matrix $\Sigma$ is an $N \times N$ matrix whose $i^{th}$ row and $j^{th}$ is a covariance between $X_i$ and $X_j$.
+
+$\vec{X} = \begin{bmatrix} X_1 \\ \vdots \\ X_N \end{bmatrix}$
+
+$\Sigma = \begin{bmatrix} \sigma_{11} & \sigma_{12} & \cdots & \sigma_{1N} \\ \sigma_{21} & \sigma_{22} & \cdots & \sigma_{2N} \\ \vdots & \vdots & \ddots & \vdots \\ \sigma_{N1} & \sigma_{N2} & \cdots & \sigma_{NN} \end{bmatrix}$
+

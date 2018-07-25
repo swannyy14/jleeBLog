@@ -12,7 +12,7 @@ draft: true
 
 
 
-<p>In my first machine learning class, in order to learn about the theory behind PCA (Principal Component Analysis), we had to learn about variance-covariance matrix. I was concurrently taking a basic theoretical probability and statistics, so even the idea of variance was still vague to me. Despite the repeated attempts to understand covariance by looking at its mathematical definition over and over again, I still had trouble fully capturing the intuition behind the covariance between two random variables. Even now, application and verification of correct usage of mathematical properties of covariance requires intensive googling. I want to use this post to review covariance and its properties.</p>
+<p>In my first machine learning class, in order to learn about the theory behind PCA (Principal Component Analysis), we had to learn about variance-covariance matrix. I was concurrently taking a basic theoretical probability and statistics, so even the idea of variance was still vague to me. Despite the repeated attempts to understand covariance, I still had trouble fully capturing the intuition behind the covariance between two random variables. Even now, application and verification of correct usage of mathematical properties of covariance requires intensive googling. I want to use this post to review covariance and its properties.</p>
 <p><strong>Basic Idea</strong> : Covariance of two random variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, also written as <span class="math inline">\(cov[X,Y]\)</span> and <span class="math inline">\(\sigma_{XY}\)</span>, is a strength of linear relationship between two random variables. It can be used to determine the directional strength of relationship between two random variables. Covariance is easily visualized by observing a distribution of bivariate normal distribution.</p>
 <p>Consider a bivariate normal distribution (non degenerate) with random variables X and Y, where <span class="math inline">\(\mu_X, \mu_Y = 0\)</span>, <span class="math inline">\(\sigma_X, \sigma_Y = 1\)</span>, and <span class="math inline">\(\sigma_{XY}\)</span> takes different values.</p>
 <pre class="r"><code>library(MASS)
@@ -59,7 +59,7 @@ for (plt in 1:length(cov_xy)){
 <p>In words, the covariance of random variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is an expectation of the product of the two variables’ deviation from the mean.</p>
 <p>From this definition, I like to understand the previously seen trend (where negative covariance is related to inverse relationship and positive covariance is related to direct relationship) by thinking of extreme cases. If X and Y were to have inverse (linear) relationship, where increasing X is related to decreasing Y, then higher values of X, which is above its mean will be paired with lower values of Y, which is below the mean. Then the deviation for X and Y will have opposite signs. So the expected value of their product would be negative. Similar reason applies for positive covariance.</p>
 <p>Covariance can also be written as: <span class="math inline">\(Cov[X, Y] = E[XY] - E[X]E[Y]\)</span>.</p>
-<p>With this formula, it is easier to see why two independent random variables have covariance of 0, since for two independent random variables X and Y, <span class="math inline">\(E[XY] = E[X]E[Y]\)</span>. However, the case for the converse is not true.</p>
+<p>With this formula, it is easier to see why two independent random variables have covariance of 0, since for two independent random variables X and Y, <span class="math inline">\(E[XY] = E[X]E[Y]\)</span>. However, the converse is not always true.</p>
 <p>A simple example:</p>
 <p><span class="math inline">\(X \sim unif(-1, 1)\)</span></p>
 <p><span class="math inline">\(Y = X^2\)</span></p>
@@ -68,7 +68,7 @@ for (plt in 1:length(cov_xy)){
 <pre class="r"><code>x &lt;- runif(n = 100, min = -1, max = 1); y &lt;- x^2
 plot(x = x, y = y, xlim = c(-1.5, 1.5), ylim = c(-0.5, 1.5), xlab = &quot;X&quot;, ylab = &quot;Y&quot;)</code></pre>
 <p><img src="/post/2018-07-16-covariance-matrix_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<p>Clearly the relationship between the two random variables is not linear, thus covariance would not be a good method to measure the strength of relationship between the two random variables.</p>
+<p>Clearly the relationship between the two random variables is not linear, thus covariance alone would not be a good method to measure the strength of relationship between the two random variables.</p>
 <p>The strength of linear relationship between two random variables is hard to determine by solely looking at the covariance because the value depends on how the random variables are scaled. Hence the covariance is often normalized into Pearson correlation coefficient (<span class="math inline">\(\rho\)</span>), which ranges from -1 to 1, so that it is easier to interpret.</p>
 <p>The definition of correlation coefficient is given by: <span class="math display">\[\rho_{_{XY}} = \dfrac{Cov[X,Y]}{Sd[X]Sd[Y]} = \dfrac{\sigma_{_{XY}}}{\sigma_{_X}\sigma_{_Y}}\]</span> where <span class="math inline">\(Sd\)</span> is standard deviation. This is easier to interpret than covariance because it is scaled down to in between -1 and 1. Closer absolute value to 1 means that the linear relationship is stronger.</p>
 <p><strong>Properties of covariance</strong></p>
@@ -95,6 +95,11 @@ plot(10*bivnorm[,1], bivnorm[,2], xlim = c(10, 90), ylim = c(1, 9), xlab = &#39;
 <p><span class="math inline">\(Cov[aX + bY,cW + dZ] = acCov[X,W] + bcCov[Y,W] + adCov[X,Z] + bdCov[Y,Z]\)</span></p>
 <p>If each coordinate is a linear combination of random variables, then each random variable ‘term’ can be taken out individually. Hence the covariance is equivalent to the summation of the covariance of each ‘pair’ of random variables.</p>
 <p><strong>Sample Covariance</strong></p>
-<p>Most of the times population parameters will be unknown and I’ll have to use samples to calculate the covariance between random variabls. The formula for sample covariance is as follows:</p>
+<p>Usually population parameters will be unknown and I’ll have to use samples to calculate the covariance. The formula for sample covariance is as follows:</p>
 <p><span class="math display">\[Cov[X,Y] = \dfrac{1}{n-1}\sum_{i=i}^{n}(X_i - \bar{X})(Y_i - \bar{Y})\]</span></p>
-<p>Geometrically speaking, covariance could be seen as the sum of area of rectangles created</p>
+<p>This formula tells me that , geometrically speaking, covariance could be seen as the sum of area of rectangles created by origin and each coordinates of the random variable pairs after they have been centered.</p>
+<p>This <a href="https://stats.seandolinar.com/covariance-different-ways-to-explain/">blog</a> translates the calculation of covariance to geometrical sense nicely.</p>
+<p><strong>Moving to variance-covariance matrix</strong></p>
+<p>Variance-covariance matrix allows us to see covariance of all pairs of components in a random vector. For a random vector <span class="math inline">\(\vec{X}\)</span> of length <span class="math inline">\(N\)</span>, the variance-covariance matrix <span class="math inline">\(\Sigma\)</span> is an <span class="math inline">\(N \times N\)</span> matrix whose <span class="math inline">\(i^{th}\)</span> row and <span class="math inline">\(j^{th}\)</span> is a covariance between <span class="math inline">\(X_i\)</span> and <span class="math inline">\(X_j\)</span>.</p>
+<p><span class="math inline">\(\vec{X} = \begin{bmatrix} X_1 \\ \vdots \\ X_N \end{bmatrix}\)</span></p>
+<p><span class="math inline">\(\Sigma = \begin{bmatrix} \sigma_{11} &amp; \sigma_{12} &amp; \cdots &amp; \sigma_{1N} \\ \sigma_{21} &amp; \sigma_{22} &amp; \cdots &amp; \sigma_{2N} \\ \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\ \sigma_{N1} &amp; \sigma_{N2} &amp; \cdots &amp; \sigma_{NN} \end{bmatrix}\)</span></p>

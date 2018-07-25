@@ -24,6 +24,7 @@ If, by some serendipity, you happen to stumble across this tiny blog, and if you
 - Drinking Americano
 - Jogging
 - Statistics
+- Tennis
 
 **Some dislikes that we might share:**
 
