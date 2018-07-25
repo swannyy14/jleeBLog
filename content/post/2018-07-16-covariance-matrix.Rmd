@@ -7,7 +7,7 @@ categories: []
 tags:
   - theory
 subtitle: ''
-draft: true
+draft: false
 ---
 In my first machine learning class, in order to learn about the theory behind PCA (Principal Component Analysis), we had to learn about variance-covariance matrix. I was concurrently taking a basic theoretical probability and statistics, so even the idea of variance was still vague to me. Despite the repeated attempts to understand covariance, I still had trouble fully capturing the intuition behind the covariance between two random variables. Even now, application and verification of correct usage of mathematical properties of covariance requires intensive googling. I want to use this post to review covariance and its properties.
 
@@ -189,4 +189,4 @@ There is also another type of covariance matrix called cross-covariance matrix f
 
 $$cov(X,Y) = E\big[(X-E[X])(Y-E[Y])\big]$$
 
-There is a lot more to covariance and variance-covariance matrix, but I think this is enough to found a solid ground for understanding covariance.
+There is a lot more to covariance and variance-covariance matrix, but this should be enough to found a solid ground for understanding covariance.
