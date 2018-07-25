@@ -117,7 +117,7 @@ plot(10*bivnorm[,1], bivnorm[,2], xlim = c(10, 90), ylim = c(1, 9), xlab = '10 *
 
 $Cov[X + a, Y + b] = Cov[X,Y]$
 
-Adding constants to random variables won't change the covariance, like how it doesn't change variance.
+Like variance, covariance is invariant to locational shifts
 
 $Cov[aX + bY,cW + dZ] = acCov[X,W] + bcCov[Y,W] + adCov[X,Z] + bdCov[Y,Z]$
 
@@ -129,15 +129,64 @@ Usually population parameters will be unknown and I'll have to use samples to ca
 
 $$Cov[X,Y] = \dfrac{1}{n-1}\sum_{i=i}^{n}(X_i - \bar{X})(Y_i - \bar{Y})$$
 
-This formula tells me that , geometrically speaking, covariance could be seen as the sum of area of rectangles created by origin and each coordinates of the random variable pairs after they have been centered.
-
 This [blog](https://stats.seandolinar.com/covariance-different-ways-to-explain/) translates the calculation of covariance to geometrical sense nicely.
 
 **Moving to variance-covariance matrix**
 
-Variance-covariance matrix allows us to see covariance of all pairs of components in a random vector. For a random vector $\vec{X}$ of length $N$, the variance-covariance matrix $\Sigma$ is an $N \times N$ matrix whose $i^{th}$ row and $j^{th}$ is a covariance between $X_i$ and $X_j$.
+Variance-covariance matrix allows us to see covariance of all pairs of components in a random vector. For a random vector $\vec{X}$ of length $N$, the variance-covariance matrix of a random vector X (denote as $Var(X)$, $Cov(X)$, $\Sigma_X$) is an $N \times N$ matrix whose $i^{th}$ row and $j^{th}$ is a covariance between $X_i$ and $X_j$.
 
-$\vec{X} = \begin{bmatrix} X_1 \\ \vdots \\ X_N \end{bmatrix}$
+$\vec{X} = \begin{pmatrix} X_1 \\ \vdots \\ X_N \end{pmatrix}$
 
-$\Sigma = \begin{bmatrix} \sigma_{11} & \sigma_{12} & \cdots & \sigma_{1N} \\ \sigma_{21} & \sigma_{22} & \cdots & \sigma_{2N} \\ \vdots & \vdots & \ddots & \vdots \\ \sigma_{N1} & \sigma_{N2} & \cdots & \sigma_{NN} \end{bmatrix}$
+$\Sigma_X = \begin{pmatrix} \sigma_{11} & \sigma_{12} & \cdots & \sigma_{1N} \\ \sigma_{21} & \sigma_{22} & \cdots & \sigma_{2N} \\ \vdots & \vdots & \ddots & \vdots \\ \sigma_{N1} & \sigma_{N2} & \cdots & \sigma_{NN} \end{pmatrix}$
 
+Applying definition of covariance, the $i^{th}$ row and $j^{th}$ column is $\Sigma_{ij} = E\big[(X_i-E[X_i])(X_j-E[X_j])\big]$. 
+
+**The following are some properties of $\text{ } \Sigma$ :**
+
+The $i^{th}$ diagonal entry is a variance of an $i^{th}$ random varible. 
+
+$\Sigma_X$ is a symmetric matrix due to the third property of covariance listed above.
+
+$\Sigma_X$ is positive semi-definite. In other words, for $\text{ } \vec{v} \in \mathbb{R}^N$,
+$$\vec{v}^T \Sigma_X \vec{v} \geq 0$$
+I'll provide a simple proof as practice:
+
+$$\vec{v}^T \Sigma_X \vec{v} = \vec{v}^TE\big[(X-E[X])(X-E[X])^T\big]\vec{v} $$
+$$= E\big[\vec{v}^T(X-E[X])(X-E[X])^T\vec{v}\big] $$
+$$= E\big[\vec{v}^T (X-E[X])(\vec{v}^T(X-E[X]))^T\big] $$
+$$= E\big[ \big( \vec{v}^T(X-E[X]) \big)^2 \big] \geq 0 \text{, } \forall \text{ } \vec{v} \in \mathbb{R}^N$$
+*Note: In the case that $\exists \text{ } \vec{v} \in \mathbb{R}^N \text{ s.t. } \vec{v}^T\Sigma\vec{v} = 0$, there is a component in a random vector $X$ that can be expressed through linear combination of other components *
+
+$\Sigma_{AX+b} = A\Sigma_XA^T$
+
+Correlation matrix, (denote as $\vec{\rho}$) whose $i^{th}$ row and $j^{th}$ column expresses the correlation coefficient between the respective random variables, can be obtained from the variance-covariance matrix.
+
+We know that $\vec{\rho}_{ij} = \dfrac{Cov(X_i, X_j)}{\sqrt{Var(X_i)Var(X_j)}}$ and the diagnonal entries of $\text{ } \Sigma \text{ }$ are variances. Hence, $\vec{\rho} = \big(diag(\Sigma)\big)^{-\frac{1}{2}} \Sigma \big(diag(\Sigma)\big)^{-\frac{1}{2}}$, where $diag(\Sigma)$ is a diagonal matrix whose diagonal entries are diagonal entries of $\Sigma$ and other entries 0. 
+
+**Calculating variance-covariance matrix from a sample**
+
+Suppose we have a set of data whose $\text{ }N\text{ }$observations are each row and $\text{ }p\text{ }$ features (variables) are each column. Denote the data by $\text{ }D$. To calculate for variance-covariance matrix, the values first need to be centered around their mean, then multiplied and summed accordingly.
+
+Let $D_c$ be data whose values are centered around their mean. Then variance-covariance matrix $V$ is:
+
+$V = \dfrac{1}{N-1} D^T_cD_c$
+
+Example using `attitude` dataset:
+```{r}
+summary(attitude)
+
+att_c <- sapply(attitude, function(x){x-mean(x)})
+cov_att_manual <- 1/(nrow(att_c) - 1) * (t(att_c) %*% att_c)
+cov_att <- cov(attitude)
+
+print(cov_att)
+print(all.equal(cov_att_manual, cov_att))
+```
+
+Although there will almost never be an occasion where I have to calculate the covariance matrix or even other statistics by hand, I thought it would be a good way to practice with matrices and to keep myself aware of the mathematical end of statistics.
+
+There is also another type of covariance matrix called cross-covariance matrix for *two* random vectors, but I will not go beyond writing the definition.
+
+$$cov(X,Y) = E\big[(X-E[X])(Y-E[Y])\big]$$
+
+There is a lot more to covariance and variance-covariance matrix, but I think this is enough to found a solid ground for understanding covariance.
