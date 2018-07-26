@@ -133,11 +133,11 @@ This [blog](https://stats.seandolinar.com/covariance-different-ways-to-explain/)
 
 **Moving to variance-covariance matrix**
 
-Variance-covariance matrix allows us to see covariance of all pairs of components in a random vector. For a random vector $\vec{X}$ of length $N$, the variance-covariance matrix of a random vector X (denote as $Var(X)$, $Cov(X)$, $\Sigma_X$) is an $N \times N$ matrix whose $i^{th}$ row and $j^{th}$ is a covariance between $X_i$ and $X_j$.
+Variance-covariance matrix allows us to see covariance of all pairs of components in a random vector. For a random vector $\textbf{X}$ of length $N$, the variance-covariance matrix of a random vector X (denote as $Var(\textbf{X})$, $Cov(\textbf{X})$, $\Sigma_\textbf{X}$) is an $N \times N$ matrix whose $i^{th}$ row and $j^{th}$ is a covariance between $X_i$ and $X_j$.
 
-$\vec{X} = \begin{pmatrix} X_1 \\ \vdots \\ X_N \end{pmatrix}$
+$\textbf{X} = \begin{pmatrix} X_1 \\ \vdots \\ X_N \end{pmatrix}$
 
-$\Sigma_X = \begin{pmatrix} \sigma_{11} & \sigma_{12} & \cdots & \sigma_{1N} \\ \sigma_{21} & \sigma_{22} & \cdots & \sigma_{2N} \\ \vdots & \vdots & \ddots & \vdots \\ \sigma_{N1} & \sigma_{N2} & \cdots & \sigma_{NN} \end{pmatrix}$
+$\Sigma_\textbf{X} = \begin{pmatrix} \sigma_{11} & \sigma_{12} & \cdots & \sigma_{1N} \\ \sigma_{21} & \sigma_{22} & \cdots & \sigma_{2N} \\ \vdots & \vdots & \ddots & \vdots \\ \sigma_{N1} & \sigma_{N2} & \cdots & \sigma_{NN} \end{pmatrix}$
 
 Applying definition of covariance, the $i^{th}$ row and $j^{th}$ column is $\Sigma_{ij} = E\big[(X_i-E[X_i])(X_j-E[X_j])\big]$. 
 
@@ -145,19 +145,19 @@ Applying definition of covariance, the $i^{th}$ row and $j^{th}$ column is $\Sig
 
 The $i^{th}$ diagonal entry is a variance of an $i^{th}$ random varible. 
 
-$\Sigma_X$ is a symmetric matrix due to the third property of covariance listed above.
+$\Sigma_\textbf{X}$ is a symmetric matrix due to the third property of covariance listed above.
 
-$\Sigma_X$ is positive semi-definite. In other words, for $\text{ } \vec{v} \in \mathbb{R}^N$,
-$$\vec{v}^T \Sigma_X \vec{v} \geq 0$$
+$\Sigma_\textbf{X}$ is positive semi-definite. In other words, for $\text{ } \textbf{v} \in \mathbb{R}^N$,
+$$\textbf{v}^T \Sigma_\textbf{X} \textbf{v} \geq 0$$
 I'll provide a simple proof as practice:
 
-$$\vec{v}^T \Sigma_X \vec{v} = \vec{v}^TE\big[(X-E[X])(X-E[X])^T\big]\vec{v} $$
-$$= E\big[\vec{v}^T(X-E[X])(X-E[X])^T\vec{v}\big] $$
-$$= E\big[\vec{v}^T (X-E[X])(\vec{v}^T(X-E[X]))^T\big] $$
-$$= E\big[ \big( \vec{v}^T(X-E[X]) \big)^2 \big] \geq 0 \text{, } \forall \text{ } \vec{v} \in \mathbb{R}^N$$
-*Note: In the case that $\exists \text{ } \vec{v} \in \mathbb{R}^N \text{ s.t. } \vec{v}^T\Sigma\vec{v} = 0$, there is a component in a random vector $X$ that can be expressed through linear combination of other components *
+$$\textbf{v}^T \Sigma_\textbf{X} \textbf{v} = \textbf{v}^TE\big[(\textbf{X}-E[\textbf{X}])(\textbf{X}-E[\textbf{X}])^T\big]\textbf{v} $$
+$$= E\big[\textbf{v}^T(\textbf{X}-E[\textbf{X}])(\textbf{X}-E[\textbf{X}])^T\textbf{v}\big] $$
+$$= E\big[\textbf{v}^T (\textbf{X}-E[\textbf{X}])(\textbf{v}^T(\textbf{X}-E[\textbf{X}]))^T\big] $$
+$$= E\big[ \big( \textbf{v}^T(\textbf{X}-E[\textbf{X}]) \big)^2 \big] \geq 0 \text{, } \forall \text{ } \textbf{v} \in \mathbb{R}^N$$
+*Note: In the case that $\exists \text{ } \textbf{v} \in \mathbb{R}^N \text{ s.t. } \textbf{v}^T\Sigma\vec{v} = 0$, there is a component in a random vector $X$ that can be expressed through linear combination of other components *
 
-$\Sigma_{AX+b} = A\Sigma_XA^T$
+$\Sigma_{A\textbf{X}+b} = A\Sigma_\textbf{X}A^T$
 
 Correlation matrix, (denote as $\vec{\rho}$) whose $i^{th}$ row and $j^{th}$ column expresses the correlation coefficient between the respective random variables, can be obtained from the variance-covariance matrix.
 
@@ -167,9 +167,9 @@ We know that $\vec{\rho}_{ij} = \dfrac{Cov(X_i, X_j)}{\sqrt{Var(X_i)Var(X_j)}}$ 
 
 Suppose we have a set of data whose $\text{ }N\text{ }$observations are each row and $\text{ }p\text{ }$ features (variables) are each column. Denote the data by $\text{ }D$. To calculate for variance-covariance matrix, the values first need to be centered around their mean, then multiplied and summed accordingly.
 
-Let $D_c$ be data whose values are centered around their mean. Then variance-covariance matrix $V$ is:
+Let $\textbf{D}_c$ be data whose values are centered around their mean. Then variance-covariance matrix $V$ is:
 
-$V = \dfrac{1}{N-1} D^T_cD_c$
+$V = \dfrac{1}{N-1} \textbf{D}^T_c\textbf{D}_c$
 
 Example using `attitude` dataset:
 ```{r}
@@ -187,6 +187,6 @@ Although there will almost never be an occasion where I have to calculate the co
 
 There is also another type of covariance matrix called cross-covariance matrix for *two* random vectors, but I will not go beyond writing the definition.
 
-$$cov(X,Y) = E\big[(X-E[X])(Y-E[Y])\big]$$
+$$cov(\textbf{X},\textbf{Y}) = E\big[(\textbf{X}-E[\textbf{X}])(\textbf{Y}-E[\textbf{Y}])\big]$$
 
 There is a lot more to covariance and variance-covariance matrix, but this should be enough to found a solid ground for understanding covariance.
