@@ -1,0 +1,174 @@
+---
+title: 2-Dimensional LDA
+author: John Lee
+date: '2018-12-21'
+slug: lda
+categories: []
+tags:
+  - LDA
+  - classification
+  - regression
+subtitle: ''
+---
+LDA, Linear Discriminant Analysis, is a classification method and a dimension reducion technique. I'll focus more on classification. LDA calculates a *linear discriminant function* (which arises from assuming Gaussian distribution) for each class, and chooses a class that maximizes such function. The linear *discriminant function* therefore dictates a linear decision boundary for choosing a class. The decision boundary should be linear in the feature space. Discriminant analysis itself isn't inherently linear. LDA is just a special case of discriminant analysis that arises from the assumption that all the classes share the same covariance matrix. 
+
+Discriminant function of class $k$:
+$$\delta(x) = x^T \Sigma^{-1}\mu_k-\frac{1}{2}\mu_k^T\Sigma^{-1}\mu_k + log(\pi_k)$$
+where 
+
+- $\mu_k$ = mean for class k
+
+- $\Sigma$ = pooled sample mean
+
+- $\pi_k$ = prior for class k. 
+
+Usually these parameters are unkown, and they are derived from the sample.
+
+To predict the class for new data points, calculate the discriminant function for each class 
+
+Again, this result arises with the assumptions that:
+
+- each class is from a normal distribution with class-specific mean $(\mu_k)$
+- the normal distributions share a common variance $(\Sigma)$
+
+
+Example with a 2-class case.
+
+First, create training samples & test samples
+```{r load_libraries, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(mixtools)
+library(MASS)
+library(latex2exp)
+library(kableExtra)
+library(knitr)
+library(formattable)
+
+set.seed(285)
+S <- matrix(c(1,0.5,0.5,1), 2); n_each <- 50 # set equal covariance for all 
+true_mu_a <- c(1,1); true_mu_b <- c(3,3)
+
+#training samples
+a <- mvrnorm(n_each, mu = true_mu_a, Sigma = S) # bivariate normal distribution with mean = (1,1)
+b <- mvrnorm(n_each, mu = true_mu_b, Sigma = S) # bivariate normal distribution with mean = (3,3)
+mydf <- data.frame(x1 = c(a[,1], b[,1]), x2 = c(a[,2], b[,2]), cl = rep(c('A','B'),each = n_each))
+print(head(mydf))
+
+#create test points
+test_n_each <- 40
+a_test <- mvrnorm(test_n_each, mu = true_mu_a, Sigma = S)
+b_test <- mvrnorm(test_n_each, mu = true_mu_b, Sigma = S)
+mytest <- data.frame("x1" = c(a_test[,1], b_test[,1]), "x2" = c(a_test[,2], b_test[,2]))
+true_class <- rep(c("A", "B"), each = test_n_each)
+```
+
+Distribution of the data:
+```{r plt_data}
+plot(mydf[,1], mydf[,2], col = factor(mydf[,3]), pch = 1, main = "Data distribution", xlab = "x1", ylab = "x2")
+```
+
+Assuming that we don't know the true $\mu$ and $\Sigma$, estimate them with the sample mean and sample covariance matrix.
+```{r stats}
+mu1 <- apply(mydf[mydf$cl == "A",c(1,2)], 2, mean) # sample mean for class A
+mu2 <- apply(mydf[mydf$cl == "B", c(1,2)], 2, mean) # sample mean for class B
+centered <- as.matrix(
+  mydf[,c(1,2)] - rbind(matrix(rep(mu1, n_each), ncol = 2, byrow = TRUE),
+                        matrix(rep(mu2, n_each), ncol = 2, byrow = TRUE)))
+varcov <- t(centered) %*% centered / (nrow(centered) - 2) # pooled variace-covariance matrix
+varcov_inv <- solve(varcov)
+```
+```{r kabletable, echo = FALSE}
+kable(
+  data.frame(
+    "A" = mu1,
+    "B" = mu2
+    ),
+  col.names = c("$\\hat{\\mu}_A$", "$\\hat{\\mu}_B$"),
+  align = "cc",
+  caption = "sample means") %>%
+  kable_styling(full_width = FALSE)
+
+kable(data.frame(varcov_inv), caption = "sample variance-covariance matrix inverse", align = "cc") %>%
+  kable_styling(full_width = FALSE)
+```
+
+The following functions use the discriminant function to calculate the scores.
+```{r calc_score}
+#used to calculate the discriminant functions
+calc_score <- function(x, mu, varcov_inv, prop){
+  as.numeric((x %*% varcov_inv %*% mu) - 0.5 * (mu %*% varcov_inv %*%  mu) + log(prop))
+}
+calc_score_A <- function(x){
+  calc_score(x, mu1, varcov_inv, 0.5)
+}
+calc_score_B <- function(x){
+  calc_score(x, mu2, varcov_inv, 0.5)
+}
+```
+
+Now that I have the sample mean, sample covariance matrix, and a way to calculate and compare the scores, I can make predictions.
+```{r my_prediction}
+test_scores <- data.frame("A_score" = apply(mytest, MARGIN = 1, calc_score_A),
+                          "B_score" = apply(mytest, MARGIN = 1, calc_score_B)) %>%
+  mutate("Prediction" = ifelse(A_score > B_score, "A", "B")) 
+test_scores %>%
+        mutate(
+          A_score = ifelse(
+            A_score > B_score, 
+            cell_spec(round(A_score, 4), format = "html", bold = TRUE),
+            round(A_score, 4)),
+          B_score = ifelse(
+            B_score > A_score,
+            cell_spec(round(B_score, 4), format = "html", bold = TRUE),
+            round(B_score, 4)
+          )
+        ) %>%
+  kable('html', escape = FALSE) %>%
+  kable_styling(full_width = FALSE) %>%
+  scroll_box(height = "300px")
+```
+
+You can see that the classification is based on whichever score is higher
+
+Compare the results with R's built in LDA function.
+```{r}
+myLDA <- lda(cl ~ ., data = mydf) # built in LDA
+mypred <- predict(myLDA, mytest)
+
+all(test_scores$Prediction == mypred$class)
+```
+
+I'm interested in seeing what the decision boundary looks like. It's simple. Since the classification is based on discriminant function, I just have to find out for which values of `x1` and `x2` the scores for both classes are equal.
+
+i.e. 
+
+$\delta_A(x) - \delta_B(x) = x^T \Sigma^{-1}\mu_A-\frac{1}{2}\mu_A^T\Sigma^{-1}\mu_A + log(\pi_A) - x^T \Sigma^{-1}\mu_B+\frac{1}{2}\mu_B^T\Sigma^{-1}\mu_B - log(\pi_B) \\ = x^T\Sigma^{-1}(\mu_A-\mu_B) + \big(-\frac{1}{2}\mu_A^T\Sigma^{-1}\mu_A+\frac{1}{2}\mu_B^T\Sigma^{-1}\mu_B\big)$
+
+```{r}
+coeff_tmp <- varcov_inv %*% (mu1 - mu2)
+intercept_tmp <- - 0.5 * (mu1 %*% varcov_inv %*% mu1) + 0.5 * (mu2 %*% varcov_inv %*% mu2)
+
+slope <- coeff_tmp[1] / -coeff_tmp[2]
+intercept <- intercept_tmp / -coeff_tmp[2]
+
+message(paste0("slope: ", slope, ", intercept: ", intercept))
+
+plot(mydf[,1], mydf[,2], col = factor(mydf[,3]), pch = 1, main = "Linear Boundary with Training Points", xlab = "x1", ylab = "x2")
+abline(b = slope, a = intercept)
+
+plot(mytest[,1], mytest[,2], col = factor(test_scores[,3]), pch = 1, main = "Linear Boundary with Test Points", xlab = "x1", ylab = "x2")
+abline(b = slope, a = intercept)
+```
+
+The line doesn't perfectly separate the training data points because they are not linearly separable without any transformation. But you can see that the class predictions are based on which side of the line the points lie on.
+
+An interesting thing to point out is the relation between LDA and linear discriminant analysis. If I set each class as 1 and -1 (A and B resp.), run linear regression with the intercept, and classify based on size relative to 0, the predictions are the same!
+
+```{r}
+mydf <- mydf %>% mutate(y = ifelse(cl == "A", 1, -1))
+
+mylm <- lm(y ~ x1 + x2, mydf)
+classes <- ifelse(predict(mylm, mytest) > 0, "A", "B")
+all(classes == test_scores$Prediction)
+```
+
