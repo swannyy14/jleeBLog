@@ -141,7 +141,7 @@ all(test_scores$Prediction == mypred$class)
 
 I'm interested in seeing what the decision boundary looks like. It's simple. Since the classification is based on discriminant function, I just have to find out for which values of `x1` and `x2` the scores for both classes are equal.
 
-i.e. 
+i.e.
 
 $\delta_A(x) - \delta_B(x) = x^T \Sigma^{-1}\mu_A-\frac{1}{2}\mu_A^T\Sigma^{-1}\mu_A + log(\pi_A) - x^T \Sigma^{-1}\mu_B+\frac{1}{2}\mu_B^T\Sigma^{-1}\mu_B - log(\pi_B) \\ = x^T\Sigma^{-1}(\mu_A-\mu_B) + \big(-\frac{1}{2}\mu_A^T\Sigma^{-1}\mu_A+\frac{1}{2}\mu_B^T\Sigma^{-1}\mu_B\big)$
 
