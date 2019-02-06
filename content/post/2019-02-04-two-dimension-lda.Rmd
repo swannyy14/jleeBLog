@@ -1,15 +1,16 @@
 ---
-title: 2-Dimensional LDA
+title: Two-Dimension LDA
 author: John Lee
-date: '2018-12-21'
-slug: lda
-categories: []
+date: '2019-02-04'
+slug: two-dimension-lda
+categories:
+  - machine learning
 tags:
-  - LDA
-  - classification
   - regression
+  - classification
 subtitle: ''
 ---
+
 LDA, Linear Discriminant Analysis, is a classification method and a dimension reducion technique. I'll focus more on classification. LDA calculates a *linear discriminant function* (which arises from assuming Gaussian distribution) for each class, and chooses a class that maximizes such function. The linear *discriminant function* therefore dictates a linear decision boundary for choosing a class. The decision boundary should be linear in the feature space. Discriminant analysis itself isn't inherently linear. LDA is just a special case of discriminant analysis that arises from the assumption that all the classes share the same covariance matrix. 
 
 Discriminant function of class $k$:
@@ -172,3 +173,4 @@ classes <- ifelse(predict(mylm, mytest) > 0, "A", "B")
 all(classes == test_scores$Prediction)
 ```
 
+I've wanted to try implementing my own vanilla version of the LDA, and visualize the results. It definitely helps understanding the problem in a simple case (like running LDA in the two dimensional case), and then generalize the results to a more complex case.
