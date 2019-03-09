@@ -1,0 +1,934 @@
+---
+title: Sorting Comparison
+author: John Lee
+date: '2019-02-25'
+slug: sorting-comparison
+categories:
+  - coding
+tags:
+  - coding
+subtitle: ''
+---
+
+
+
+<p>As I’m self studying algorithms and data structures with python from <a href="https://runestone.academy/runestone/static/pythonds/index.html">here</a>, I figured I could try to do some experiments with different sorting algorithms using my own implementations in R.</p>
+<p>Types of sorting algorithms I will use:</p>
+<ul>
+<li>Bubble Sort</li>
+<li>Insertion Sort</li>
+<li>Selection Sort</li>
+<li>Shell Sort</li>
+<li>Merge Sort</li>
+<li>Quick Sort</li>
+</ul>
+<p>I will be dealing with a vector of type <code>double</code>. It can be a collection of any real positive numbers.</p>
+<pre class="r"><code>set.seed(3706)</code></pre>
+<p>The following function is used as a sanity check to confirm that each function sorts the given vector as it should.</p>
+<pre class="r"><code>check_works_correct &lt;- function(myFunc){
+  tmp &lt;- function(myfunc) {
+    x &lt;- sample(100, 50) # integers; This checks that the algorithm works as it should even with duplicates
+    y &lt;- runif(50, 0, 500)
+    return(identical(sort(x), myfunc(x)) &amp;&amp; identical(sort(y), myfunc(y))) # compare to R&#39;s sort function
+  }
+  return(all(replicate(n = 100, tmp(myFunc))))
+}</code></pre>
+<p><strong>Bubble Sort</strong></p>
+<pre class="r"><code>bubble_sort &lt;- function(x) {
+  pass_remain &lt;- length(x)
+  swapped &lt;- TRUE
+  while ((pass_remain &gt;= 1) &amp; swapped) {
+    swapped &lt;- FALSE
+    a &lt;- 1
+    b &lt;- 2
+    while (a &lt; pass_remain) {
+      if (x[a] &gt; x[b]) {
+        tmp &lt;- x[a]
+        x[a] &lt;- x[b]
+        x[b] &lt;- tmp
+        swapped &lt;- TRUE
+      }
+      a &lt;- a + 1
+      b &lt;- b + 1
+    }
+    pass_remain &lt;- pass_remain - 1
+  }
+  return(x)
+}
+
+check_works_correct(bubble_sort)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><strong>Insertion Sort</strong></p>
+<pre class="r"><code>insertion_sort &lt;- function(x) {
+  for (i in 2:length(x)) {
+    item &lt;- x[i]
+    pos &lt;- i
+    while ((x[pos - 1] &gt; item) &amp;&amp; (pos &gt; 1)) {
+      x[pos] &lt;- x[pos - 1]
+      pos &lt;- pos - 1
+    }
+    x[pos] &lt;- item
+  }
+  return(x)
+}
+
+check_works_correct(insertion_sort)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><strong>Selection Sort</strong></p>
+<pre class="r"><code>selection_sort &lt;- function(x) {
+  for (i in seq(length(x), 1, -1)) {
+    max_ind &lt;- 1
+    for (j in 1:i) {
+      if (x[j] &gt; x[max_ind]) {
+        max_ind &lt;- j
+      }
+    }
+    tmp &lt;- x[i]
+    x[i] &lt;- x[max_ind]
+    x[max_ind] &lt;- tmp
+  }
+  return(x)
+}
+
+check_works_correct(selection_sort)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><strong>Shell Sort</strong></p>
+<pre class="r"><code>shell_sort &lt;- function(x) {
+  # choose max increment (Hibbard Increment)
+  k &lt;- floor(log(length(x)+1, 2))
+  # sort all the sublists with the increment, while decreasing the increment
+  while (k &gt; 0) {
+    gap &lt;- 2^k - 1
+    # sort each sublist with insertion sort
+    for (i in 1:gap) {
+      compare_pos &lt;- i + gap
+      while (compare_pos &lt; (length(x) + 1)) {
+        item &lt;- x[compare_pos]
+        pos &lt;- compare_pos
+        while (x[pos-gap] &gt; item &amp;&amp; pos &gt; i) {
+          x[pos] &lt;- x[pos-gap]
+          pos &lt;- pos-gap
+        }
+        x[pos] &lt;- item
+        compare_pos &lt;- compare_pos + gap
+      }
+    }
+    # decrement
+    k &lt;- k - 1
+  }
+  return(x)
+}
+
+check_works_correct(shell_sort)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><strong>Merge Sort</strong></p>
+<pre class="r"><code># merge sort with recursion
+merge_sort &lt;- function(x) {
+  if (length(x) &lt; 2) { # base case
+    return(x)
+  } else {
+    break_point &lt;- length(x) %/% 2
+    
+    # break the vector into two
+    left &lt;- x[1:break_point]
+    right &lt;- x[(break_point+1):length(x)]
+    
+    # recurecurecursionsionsion
+    left &lt;- merge_sort(left)
+    right &lt;- merge_sort(right)
+    
+    insert_pos &lt;- 1
+    left_pos &lt;- 1
+    right_pos &lt;- 1
+    
+    # merge left and right
+    while (left_pos &lt;= length(left) &amp;&amp; right_pos &lt;= length(right)) {
+      if (left[left_pos] &lt;= right[right_pos]) {
+        x[insert_pos] &lt;- left[left_pos]
+        left_pos &lt;- left_pos + 1
+      } else {
+        x[insert_pos] &lt;- right[right_pos]
+        right_pos &lt;- right_pos + 1
+      }
+      insert_pos &lt;- insert_pos + 1
+    }
+    
+    if (left_pos &lt;= length(left)) {
+      while (left_pos &lt;= length(left)) {
+        x[insert_pos] &lt;- left[left_pos]
+        left_pos &lt;- left_pos + 1
+        insert_pos &lt;- insert_pos + 1
+      }
+    }
+    
+    if (right_pos &lt;= length(right)) {
+      while (right_pos &lt;= length(right)) {
+        x[insert_pos] &lt;- right[right_pos]
+        right_pos &lt;- right_pos + 1
+        insert_pos &lt;- insert_pos + 1
+      }
+    }
+    
+    return(x)
+  }
+}
+check_works_correct(merge_sort)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><strong>Quick Sort</strong></p>
+<pre class="r"><code>quick_sort &lt;- function(x) {
+  low &lt;- 1
+  high &lt;- length(x)
+  x &lt;- quick_sort_helper(x, low, high)
+  return(x)
+}
+
+quick_sort_helper &lt;- function(x, low, high) {
+  if (low &gt;= high) {
+    return(x)
+  } else {
+    # choose pivot
+    mid &lt;- (low + high) %/% 2
+    if ((x[low] &lt; x[mid] &amp;&amp; x[mid] &lt; x[high]) || (x[high] &lt; x[mid] &amp;&amp; x[mid] &lt; x[low])) {
+      median_ind &lt;- mid
+    } else if ((x[mid] &lt; x[low] &amp;&amp; x[low] &lt; x[high]) || (x[high] &lt; x[low] &amp;&amp; x[low] &lt; x[mid])) {
+      median_ind &lt;- low
+    } else {
+      median_ind &lt;- high
+    }
+    
+    # put pivot to last index
+    pivot &lt;- x[median_ind]
+    if (median_ind != high) {
+      x[median_ind] &lt;- x[high]
+      x[high] &lt;- pivot
+    } 
+    
+    left &lt;- low
+    right &lt;- high-1
+    
+    # rearrange the values around the pivot
+    done &lt;- FALSE
+    while (!done) {
+      while (left &lt;= right &amp;&amp; x[left] &lt; pivot) {
+        left &lt;- left + 1
+      }
+      while (right &gt;= left &amp;&amp; x[right] &gt;= pivot) {
+        right &lt;- right - 1
+      }
+      if (left &gt; right) {
+        done &lt;- TRUE
+      } else {
+        tmp &lt;- x[right]
+        x[right] &lt;- x[left]
+        x[left] &lt;- tmp
+      }
+    }
+    x[high] &lt;- x[left]
+    x[left] &lt;- pivot
+    
+    x &lt;- quick_sort_helper(x, low, left-1)
+    x &lt;- quick_sort_helper(x, left+1, high)
+  }
+  return(x)
+}
+
+check_works_correct(quick_sort)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Now I’ll compare the runtime of each sort, varying the size and shape of the graphs.</p>
+<p>I built the function <code>generate_random_sequence</code>, which accepts the following to generate a random sequence:</p>
+<ul>
+<li><code>trend</code>: a function that describes the general trend of the sequence of the sequences</li>
+<li><code>n</code>: number of points</li>
+<li><code>low</code>: lowest <code>x</code> value. Defaults to 0.</li>
+<li><code>high</code>: highest <code>x</code> value. Defaults to 10.</li>
+<li><code>noise</code>: a function to be used to generate noise for the sequence. Defaults to a Gaussian Distribution with mean 0 and sd 5</li>
+</ul>
+<pre class="r"><code>generate_random_sequence &lt;- function(trend, n, low=0, high=10, noise = function(x) rnorm(x, 0, 5)) {
+  # trend: a function; general trend of the sequence
+  # noise: a function; amount of noise you want to add to a sequence
+  x &lt;- trend(seq(low, high, length.out = n)) + noise(n)
+  if (any(x &lt;= 0)) {
+    x &lt;- x + abs(min(x)) + 1
+  }
+  return(x)
+}</code></pre>
+<p>For example, suppose I want to generate a sequence of length <code>n = 100</code> that follows a quadratic trend. (I put less emphasis on the aesthetics of the graphs. I just wanted to quickly demonstrate the graphs.)</p>
+<pre class="r"><code>trend1 &lt;- function(x) (x-5)^2 # quadratic trend
+x1 &lt;- generate_random_sequence(trend1, 100)
+
+par(mfrow = c(1, 2), mar = c(1, 0.1, 2, 2), oma=c(1.5,2,2,1))
+plot(x1, xaxt = &#39;n&#39;, main = &#39;Scatterplot&#39;, xlab=&#39;&#39;)
+barplot(x1, main = &#39;Barplot&#39;)
+mtext(expression(bold(&quot;Sequence with Quadratic Trend&quot;)), outer=TRUE, cex=1.5)</code></pre>
+<p><img src="/post/2019-03-01-sorting-comparison_files/figure-html/example1-1.png" width="672" /></p>
+<p>Create various types of trends</p>
+<pre class="r"><code>quadratic_trend &lt;- function(x) (x-5)^2
+right_skew_trend &lt;- function(x) dgamma(x, 4, 2) * 10
+left_skew_trend &lt;- function(x) dgamma(10-x, 4, 2) * 10
+symmetrical_trend &lt;- function(x) dnorm(x, 5, 1.3) * 10
+flat_trend &lt;- function(x) dunif(x, 0, 10) * 10
+sine_trend &lt;- function(x) sin(x*2) * 5 
+
+trend_list &lt;- list(
+  # all range from 0 to 10
+  quadratic_trend = quadratic_trend,
+  right_skew_trend = right_skew_trend, 
+  left_skew_trend = left_skew_trend, 
+  symmetrical_trend = symmetrical_trend, 
+  flat_trend = flat_trend, 
+  sine_trend = sine_trend
+)
+
+par(mfrow = c(1, 2))
+for (i in 1:length(trend_list)) {
+  plot(trend_list[[i]], 0, 10, main = names(trend_list)[i], xaxt = &quot;n&quot;, xlab = &quot;&quot;)
+}</code></pre>
+<p><img src="/post/2019-03-01-sorting-comparison_files/figure-html/create_trends-1.png" width="672" /><img src="/post/2019-03-01-sorting-comparison_files/figure-html/create_trends-2.png" width="672" /><img src="/post/2019-03-01-sorting-comparison_files/figure-html/create_trends-3.png" width="672" /></p>
+<p>What they look like when noise is added:</p>
+<pre class="r"><code>par(mfrow = c(1,2))
+barplot(generate_random_sequence(quadratic_trend, 100, noise = function(x) rnorm(x, 0, 5)), main = &quot;Quadratic Trend&quot;)
+barplot(generate_random_sequence(right_skew_trend, 100, noise = function(x) rnorm(x, 0, 1)), main = &quot;Right Skew Trend&quot;)
+barplot(generate_random_sequence(left_skew_trend, 100, noise = function(x) rnorm(x, 0, 1)), main = &quot;Left Skew Trend&quot;)
+barplot(generate_random_sequence(symmetrical_trend, 100, noise = function(x) rnorm(x, 0, 0.7)), main = &quot;Symmetrical Trend&quot;)
+barplot(generate_random_sequence(flat_trend, 100, noise = function(x) rnorm(x, 0, 0.8)), main = &quot;Flat Trend&quot;)
+barplot(generate_random_sequence(sine_trend, 100, noise = function(x) rnorm(x, 0, 2)), main = &quot;Sine Trend&quot;)</code></pre>
+<p><img src="/post/2019-03-01-sorting-comparison_files/figure-html/barplots_evalled-1.png" width="672" /><img src="/post/2019-03-01-sorting-comparison_files/figure-html/barplots_evalled-2.png" width="672" /><img src="/post/2019-03-01-sorting-comparison_files/figure-html/barplots_evalled-3.png" width="672" /></p>
+<p>Also, consider some special cases, such as already sorted, sorted backwards, etc.</p>
+<pre class="r"><code>already_sorted &lt;- function(n) seq(1, n)
+sorted_backwards &lt;- function(n) seq(n, 1, -1)
+one_off &lt;- function(n) {
+  mySeq &lt;- seq(1, n)
+  random_index &lt;- sample(mySeq, 2)
+  mySeq[random_index] &lt;- mySeq[random_index[c(2,1)]]
+  return(mySeq)
+}
+extreme_out_of_place &lt;- function(n, lowest=TRUE) {
+  mySeq &lt;- seq(1,n)
+  index &lt;- ifelse(lowest, 1, length(mySeq))
+  replace_val &lt;- ifelse(lowest, n+1, 0)
+  mySeq[index] &lt;- replace_val
+  return(mySeq)
+}
+
+special_case_list &lt;- list(
+  already_sorted = already_sorted,
+  sorted_backwards = sorted_backwards,
+  one_off = one_off,
+  extreme_out_of_place_low = function(x) extreme_out_of_place(x, TRUE),
+  extreme_out_of_place_high = function(x) extreme_out_of_place(x, FALSE)
+)
+
+par(mfrow = c(1,2))
+for (i in 1:length(special_case_list)) {
+  barplot(special_case_list[[i]](100), main = names(special_case_list)[i], cex.main = 0.9)
+}</code></pre>
+<p><img src="/post/2019-03-01-sorting-comparison_files/figure-html/construct_special_cases-1.png" width="672" /><img src="/post/2019-03-01-sorting-comparison_files/figure-html/construct_special_cases-2.png" width="672" /><img src="/post/2019-03-01-sorting-comparison_files/figure-html/construct_special_cases-3.png" width="672" /></p>
+<p>Now that I have the tools to construct random sequences, I can finally start generating sequences and do benchmarks.</p>
+<p>Microbenchmark for trends:</p>
+<pre class="r"><code>library(microbenchmark)</code></pre>
+<pre><code>## Warning: package &#39;microbenchmark&#39; was built under R version 3.5.2</code></pre>
+<pre class="r"><code># each trend uses different noise scale.
+noise_list &lt;- list(
+  &quot;quadratic_trend&quot; = function(x) rnorm(x, 0, 5),
+  &quot;right_skew_trend&quot; = function(x) rnorm(x, 0, 1),
+  &quot;left_skew_trend&quot; = function(x) rnorm(x, 0, 1),
+  &quot;symmetrical_trend&quot; = function(x) rnorm(x, 0, 0.7),
+  &quot;flat_trend&quot; = function(x) rnorm(x, 0, 0.8),
+  &quot;sine_trend&quot; = function(x) rnorm(x, 0, 2)
+)
+
+# deprecated
+# random_sequence_with_trend &lt;- function(n) {
+#   mapply(
+#     function(trend, noise) generate_random_sequence(trend = trend, n = n, noise = noise),
+#     trend = trend_list,
+#     noise = trend_noise,
+#     SIMPLIFY = FALSE
+#     )
+# }
+
+N &lt;- c(10, 100, 1000) # size of sequence
+
+# loop through each N and trends
+trend_sort_time &lt;- setNames(
+  rep(list(setNames(vector(&quot;list&quot;, length(trend_list)), names(trend_list))), length(N)),
+  N)
+print(str(trend_sort_time))</code></pre>
+<pre><code>## List of 3
+##  $ 10  :List of 6
+##   ..$ quadratic_trend  : NULL
+##   ..$ right_skew_trend : NULL
+##   ..$ left_skew_trend  : NULL
+##   ..$ symmetrical_trend: NULL
+##   ..$ flat_trend       : NULL
+##   ..$ sine_trend       : NULL
+##  $ 100 :List of 6
+##   ..$ quadratic_trend  : NULL
+##   ..$ right_skew_trend : NULL
+##   ..$ left_skew_trend  : NULL
+##   ..$ symmetrical_trend: NULL
+##   ..$ flat_trend       : NULL
+##   ..$ sine_trend       : NULL
+##  $ 1000:List of 6
+##   ..$ quadratic_trend  : NULL
+##   ..$ right_skew_trend : NULL
+##   ..$ left_skew_trend  : NULL
+##   ..$ symmetrical_trend: NULL
+##   ..$ flat_trend       : NULL
+##   ..$ sine_trend       : NULL
+## NULL</code></pre>
+<pre class="r"><code>for (n in N) {
+  for (trend in names(trend_list)) {
+    trend_sort_time[[as.character(n)]][[trend]] &lt;-
+      microbenchmark(
+        &quot;bubble_sort&quot; = bubble_sort(Seq),
+        &quot;insertion_sort&quot; = insertion_sort(Seq),
+        &quot;selection_sort&quot; = selection_sort(Seq),
+        &quot;shell_sort&quot; = shell_sort(Seq),
+        &quot;merge_sort&quot; = merge_sort(Seq),
+        &quot;quick_sort&quot; = quick_sort(Seq),
+        times = 100L,
+        setup = assign(&quot;Seq&quot;, 
+                       generate_random_sequence(
+                         trend=trend_list[[trend]],
+                         n=n,noise = noise_list[[trend]]))
+      )
+  }
+}
+
+print(trend_sort_time)</code></pre>
+<pre><code>## $`10`
+## $`10`$quadratic_trend
+## Unit: microseconds
+##            expr    min      lq     mean  median      uq     max neval
+##     bubble_sort  9.817 11.7060 18.18488 13.2160 26.8090  44.178   100
+##  insertion_sort  7.174  9.0630 13.28016 10.1950 17.3695  32.095   100
+##  selection_sort 24.166 27.5640 39.96385 33.6050 43.8000 111.765   100
+##      shell_sort 13.971 16.2370 27.38283 19.2575 36.0595 103.080   100
+##      merge_sort 35.115 37.7585 51.95580 40.4015 60.7910 122.714   100
+##      quick_sort 22.278 25.2980 33.93383 27.9410 36.4375  74.385   100
+## 
+## $`10`$right_skew_trend
+## Unit: microseconds
+##            expr    min      lq     mean  median      uq     max neval
+##     bubble_sort 10.573 14.1600 21.82102 15.8590 26.9975  87.222   100
+##  insertion_sort  7.174 10.1950 15.32286 12.0835 19.2570  35.871   100
+##  selection_sort 24.543 28.5080 41.58366 34.7380 50.7850 115.918   100
+##      shell_sort 13.216 16.2370 23.84487 18.6910 30.9625  80.804   100
+##      merge_sort 35.494 39.0805 51.65748 42.4785 58.3370 105.724   100
+##      quick_sort 23.033 26.4315 35.67824 29.4520 34.1715 252.225   100
+## 
+## $`10`$left_skew_trend
+## Unit: microseconds
+##            expr    min      lq     mean  median      uq     max neval
+##     bubble_sort  7.929 13.2155 20.42765 17.1805 26.4315  60.414   100
+##  insertion_sort  5.665  7.9300 11.34696  9.8175 13.7820  24.921   100
+##  selection_sort 25.676 32.8505 46.52997 41.5340 57.5810  96.662   100
+##      shell_sort 12.461 16.6140 25.65340 23.7880 32.6610  75.517   100
+##      merge_sort 35.493 40.4020 58.82029 56.2605 73.4405 109.122   100
+##      quick_sort 21.522 28.1300 37.99661 34.9270 45.3105  80.426   100
+## 
+## $`10`$symmetrical_trend
+## Unit: microseconds
+##            expr    min      lq     mean  median      uq     max neval
+##     bubble_sort 10.195 13.4045 20.88085 15.4820 26.2425  87.600   100
+##  insertion_sort  5.664  8.3070 11.97739  9.8170 13.0270  43.045   100
+##  selection_sort 25.676 31.3395 45.04223 41.1570 53.4285  98.171   100
+##      shell_sort 12.838 15.1030 20.96776 17.3690 24.1665  50.974   100
+##      merge_sort 35.870 38.5140 50.83818 41.1570 61.1685 111.765   100
+##      quick_sort 21.900 26.0540 39.12934 32.2835 50.2190 130.644   100
+## 
+## $`10`$flat_trend
+## Unit: microseconds
+##            expr    min      lq     mean  median      uq     max neval
+##     bubble_sort  7.930 13.0275 22.94252 16.6145 31.1515  46.820   100
+##  insertion_sort  5.664  8.8735 15.48515 13.9710 20.9560  38.136   100
+##  selection_sort 24.543 27.1870 44.85733 33.4165 63.6225 132.909   100
+##      shell_sort 12.461 15.8590 27.75664 19.2570 38.1365 120.826   100
+##      merge_sort 35.871 39.0805 69.63797 71.3635 85.5225 459.895   100
+##      quick_sort 21.145 24.9215 39.99401 29.0740 54.7500  76.649   100
+## 
+## $`10`$sine_trend
+## Unit: microseconds
+##            expr    min      lq     mean  median     uq    max neval
+##     bubble_sort 11.328 12.0830 13.43495 12.8380 13.593 38.892   100
+##  insertion_sort  6.042  7.5530  8.60571  8.3070  9.063 19.258   100
+##  selection_sort 24.166 26.0540 27.81321 27.1865 28.697 41.157   100
+##      shell_sort 12.838 14.7265 15.82121 15.8590 16.614 19.635   100
+##      merge_sort 35.115 37.0040 38.81591 38.1360 39.269 76.272   100
+##      quick_sort 21.900 23.7880 26.21984 25.6760 27.564 40.402   100
+## 
+## 
+## $`100`
+## $`100`$quadratic_trend
+## Unit: microseconds
+##            expr     min       lq      mean   median        uq      max
+##     bubble_sort 789.523 856.5445 1167.8832 978.3145 1214.3030 2554.340
+##  insertion_sort 406.656 423.6475  561.1172 446.6795  602.2435 1297.371
+##  selection_sort 337.558 352.6615  513.8137 378.1490  568.8270 3353.303
+##      shell_sort 285.075 305.2755  404.3074 329.8185  430.0660 1029.288
+##      merge_sort 500.296 523.1400  671.5899 558.4435  690.0310 1574.893
+##      quick_sort 276.012 306.9745  423.7793 335.8595  487.6475 2495.815
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$right_skew_trend
+## Unit: microseconds
+##            expr      min        lq      mean    median        uq      max
+##     bubble_sort 1019.471 1074.5980 1520.3405 1252.2500 1688.3565 5871.017
+##  insertion_sort  530.503  584.4970  790.4526  621.8775  795.1870 1931.708
+##  selection_sort  340.580  363.6120  538.0129  424.2135  675.4940 1273.961
+##      shell_sort  290.361  316.9805  464.9659  366.8205  526.5385 2552.453
+##      merge_sort  505.582  524.6505  709.1140  586.5740  882.9755 1320.026
+##      quick_sort  275.258  308.2955  419.9732  355.6825  468.3905  873.346
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$left_skew_trend
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort 600.733 788.3910 1016.1445 825.9605 986.0545 2943.249
+##  insertion_sort 223.152 255.6240  379.6363 277.5230 478.5850  981.713
+##  selection_sort 333.405 345.6765  448.4279 362.8565 480.0955  938.669
+##      shell_sort 238.632 267.1400  349.0747 279.4110 367.9540 1204.863
+##      merge_sort 485.949 498.4085  707.6905 524.6505 761.3940 2978.742
+##      quick_sort 269.594 287.1515  469.9877 306.7850 505.7710 7513.497
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$symmetrical_trend
+## Unit: microseconds
+##            expr     min       lq      mean    median        uq      max
+##     bubble_sort 892.981 950.3730 1437.7256 1096.4975 1874.6930 3910.991
+##  insertion_sort 383.624 426.1010  640.5527  453.6655  883.1645 1414.421
+##  selection_sort 336.048 360.4020  535.5624  396.4615  699.0930 1870.163
+##      shell_sort 275.258 287.3400  432.2069  307.5410  559.5765 1260.368
+##      merge_sort 496.143 527.1045  794.6891  601.1105  970.0080 3733.528
+##      quick_sort 279.411 298.2900  436.0620  337.7470  552.5915 1113.489
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$flat_trend
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort 845.406 911.4825 1022.9900 936.5915 991.5295 2533.951
+##  insertion_sort 343.222 417.6060  459.2946 435.9185 461.7830 1252.816
+##  selection_sort 332.272 340.5795  379.8024 349.2640 358.3255 1116.132
+##      shell_sort 272.237 289.0395  316.2780 297.7235 309.0515  772.155
+##      merge_sort 496.520 505.2045  632.0231 517.6645 548.2495 5288.031
+##      quick_sort 277.523 285.6410  305.4792 290.5495 300.5550  589.783
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$sine_trend
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort 892.603 929.2285 1013.8638 943.0105 979.6355 3253.244
+##  insertion_sort 415.340 451.0215  502.6297 463.1045 481.4175  943.577
+##  selection_sort 331.517 339.0690  371.0425 348.6970 357.1930  680.780
+##      shell_sort 297.157 313.5820  351.4498 323.9655 339.4465  700.037
+##      merge_sort 486.326 497.6535  578.9579 513.3225 554.1020 1076.108
+##      quick_sort 273.748 287.7180  340.4470 293.3820 307.3520 2493.172
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## 
+## $`1000`
+## $`1000`$quadratic_trend
+## Unit: milliseconds
+##            expr       min        lq      mean    median        uq
+##     bubble_sort 87.583833 90.656593 99.214008 91.586765 94.230780
+##  insertion_sort 39.917174 41.773365 44.853291 42.554771 43.211196
+##  selection_sort 28.002209 28.838363 32.202442 29.466470 30.596006
+##      shell_sort  7.037745  7.460636  9.157167  8.025120  9.587743
+##      merge_sort  6.364139  6.573130  7.721488  6.983372  8.162183
+##      quick_sort  3.844159  4.023888  4.974223  4.182472  5.008809
+##        max neval
+##  226.96129   100
+##  113.88957   100
+##  119.16401   100
+##   24.72971   100
+##   15.10553   100
+##   12.60179   100
+## 
+## $`1000`$right_skew_trend
+## Unit: milliseconds
+##            expr        min         lq       mean     median         uq
+##     bubble_sort 105.632613 108.552828 115.003218 110.644631 114.907716
+##  insertion_sort  56.989150  58.478143  64.544750  59.274840  62.902455
+##  selection_sort  28.101135  28.962021  30.248838  29.480252  30.989824
+##      shell_sort   8.138395   8.577145   9.946025   9.044213  10.402751
+##      merge_sort   6.204799   6.512339   7.516348   7.094382   8.011339
+##      quick_sort   3.858507   3.964041   4.658134   4.081658   4.600455
+##        max neval
+##  165.93164   100
+##  217.55573   100
+##   37.50405   100
+##   44.24237   100
+##   12.73998   100
+##   16.17635   100
+## 
+## $`1000`$left_skew_trend
+## Unit: milliseconds
+##            expr       min        lq      mean    median        uq
+##     bubble_sort 85.507135 87.533804 95.895518 90.252769 96.980330
+##  insertion_sort 25.245863 26.865876 29.326678 28.013347 29.176676
+##  selection_sort 29.240299 31.171062 32.675899 31.715913 32.397259
+##      shell_sort  5.972586  6.393023  7.729334  7.397391  8.584319
+##      merge_sort  6.378109  6.659597  8.094259  7.650559  8.742903
+##      quick_sort  3.784123  3.899097  4.899643  4.020300  5.657684
+##        max neval
+##  190.95586   100
+##   80.48114   100
+##   73.73754   100
+##   15.37210   100
+##   23.52107   100
+##   15.26185   100
+## 
+## $`1000`$symmetrical_trend
+## Unit: milliseconds
+##            expr       min         lq       mean     median         uq
+##     bubble_sort 98.460827 100.703662 105.257432 102.831712 105.389638
+##  insertion_sort 42.320859  44.105310  47.379452  45.297146  46.556569
+##  selection_sort 29.054151  30.922991  32.556904  31.357777  32.306072
+##      shell_sort  7.035101   7.377190   8.999462   8.681735   9.323435
+##      merge_sort  6.349036   6.617119   7.924619   8.049474   8.525983
+##      quick_sort  3.817350   3.975746   4.946380   4.135463   5.992598
+##         max neval
+##  155.820762   100
+##   97.703776   100
+##   49.024443   100
+##   20.206280   100
+##   13.537812   100
+##    9.928887   100
+## 
+## $`1000`$flat_trend
+## Unit: milliseconds
+##            expr       min        lq       mean     median         uq
+##     bubble_sort 91.046634 97.986207 111.113077 103.699772 112.247654
+##  insertion_sort 38.633397 42.777733  48.829807  44.859529  48.087286
+##  selection_sort 27.996545 30.114589  35.950744  31.386284  33.633083
+##      shell_sort  7.276754  7.814996   9.752307   9.017405   9.724993
+##      merge_sort  6.498558  6.636753   8.660820   7.821415   8.540520
+##      quick_sort  3.825280  3.924583   4.714522   4.013693   4.595546
+##        max neval
+##  250.38532   100
+##  209.80247   100
+##  114.67645   100
+##   29.23313   100
+##   24.18410   100
+##   16.66985   100
+## 
+## $`1000`$sine_trend
+## Unit: milliseconds
+##            expr       min        lq      mean    median        uq
+##     bubble_sort 90.765713 93.521304 96.256585 94.578155 96.440387
+##  insertion_sort 43.222901 43.976932 44.783692 44.342242 44.834232
+##  selection_sort 27.881760 28.003907 28.897764 28.121147 28.562351
+##      shell_sort  6.865945  7.184246  7.581028  7.275054  7.449120
+##      merge_sort  6.177614  6.391514  6.628295  6.457213  6.563313
+##      quick_sort  3.769020  3.865492  4.068658  3.909292  3.986507
+##         max neval
+##  134.062620   100
+##   50.947466   100
+##   44.909181   100
+##   10.426539   100
+##    8.589605   100
+##    8.409876   100</code></pre>
+<p>Microbenchmark for Special Cases</p>
+<pre class="r"><code>special_case_sort_time &lt;- setNames(
+  rep(list(setNames(vector(&quot;list&quot;, length(special_case_list)), names(special_case_list))), length(N)),
+  N)
+print(str(special_case_sort_time))</code></pre>
+<pre><code>## List of 3
+##  $ 10  :List of 5
+##   ..$ already_sorted           : NULL
+##   ..$ sorted_backwards         : NULL
+##   ..$ one_off                  : NULL
+##   ..$ extreme_out_of_place_low : NULL
+##   ..$ extreme_out_of_place_high: NULL
+##  $ 100 :List of 5
+##   ..$ already_sorted           : NULL
+##   ..$ sorted_backwards         : NULL
+##   ..$ one_off                  : NULL
+##   ..$ extreme_out_of_place_low : NULL
+##   ..$ extreme_out_of_place_high: NULL
+##  $ 1000:List of 5
+##   ..$ already_sorted           : NULL
+##   ..$ sorted_backwards         : NULL
+##   ..$ one_off                  : NULL
+##   ..$ extreme_out_of_place_low : NULL
+##   ..$ extreme_out_of_place_high: NULL
+## NULL</code></pre>
+<pre class="r"><code>for (n in N) {
+  for (sc in names(special_case_list)) {
+    special_case_sort_time[[as.character(n)]][[sc]] &lt;-
+      microbenchmark(
+        &quot;bubble_sort&quot; = bubble_sort(Seq),
+        &quot;insertion_sort&quot; = insertion_sort(Seq),
+        &quot;selection_sort&quot; = selection_sort(Seq),
+        &quot;shell_sort&quot; = shell_sort(Seq),
+        &quot;merge_sort&quot; = merge_sort(Seq),
+        &quot;quick_sort&quot; = quick_sort(Seq),
+        times = 100L,
+        setup = assign(&quot;Seq&quot;, special_case_list[[sc]](n))
+      )
+  }
+}
+
+print(special_case_sort_time)</code></pre>
+<pre><code>## $`10`
+## $`10`$already_sorted
+## Unit: microseconds
+##            expr    min     lq     mean median     uq    max neval
+##     bubble_sort  1.888  2.266  2.62858  2.643  2.644  6.420   100
+##  insertion_sort  2.266  2.643  2.65121  2.644  2.644  4.532   100
+##  selection_sort 22.278 23.410 24.36217 23.789 24.921 41.912   100
+##      shell_sort  9.062  9.440  9.88566  9.818 10.195 15.482   100
+##      merge_sort 32.850 33.606 34.57954 34.361 35.116 41.912   100
+##      quick_sort 21.145 22.277 22.90093 22.656 23.033 32.473   100
+## 
+## $`10`$sorted_backwards
+## Unit: microseconds
+##            expr    min      lq     mean  median     uq     max neval
+##     bubble_sort 14.726 15.8590 21.74558 16.4255 17.747 136.686   100
+##  insertion_sort 12.838 13.5930 16.47825 13.9710 15.104  44.933   100
+##  selection_sort 21.523 22.8445 30.27512 23.7880 26.054 269.972   100
+##      shell_sort 13.971 14.7260 17.03323 15.4810 16.615  44.556   100
+##      merge_sort 35.115 36.6260 45.77860 38.1370 41.346 173.689   100
+##      quick_sort 21.522 22.8445 29.84095 23.7885 26.808 207.293   100
+## 
+## $`10`$one_off
+## Unit: microseconds
+##            expr    min     lq     mean  median      uq     max neval
+##     bubble_sort  3.776  6.042  7.89580  8.1180  9.8180  13.216   100
+##  insertion_sort  2.643  3.399  4.31262  4.1540  4.9090   7.175   100
+##  selection_sort 22.655 24.921 28.62513 26.0530 26.9975 254.490   100
+##      shell_sort  9.440 10.573 11.96242 11.3280 12.8380  25.299   100
+##      merge_sort 33.605 34.739 35.93126 35.4935 36.6260  44.177   100
+##      quick_sort 19.257 21.523 23.14632 23.4100 24.3545  30.962   100
+## 
+## $`10`$extreme_out_of_place_low
+## Unit: microseconds
+##            expr    min      lq     mean median     uq    max neval
+##     bubble_sort  4.532  5.2870  5.75116  5.664  5.665 12.083   100
+##  insertion_sort  4.154  4.9090  5.26412  4.910  5.287 12.461   100
+##  selection_sort 22.655 24.1650 25.31367 24.544 25.676 40.024   100
+##      shell_sort 12.461 13.5930 14.24673 13.971 14.726 22.277   100
+##      merge_sort 34.738 35.8710 38.72157 36.626 38.514 74.007   100
+##      quick_sort 20.768 21.9005 23.27849 23.033 23.788 45.310   100
+## 
+## $`10`$extreme_out_of_place_high
+## Unit: microseconds
+##            expr    min      lq     mean median     uq    max neval
+##     bubble_sort 10.195 10.7615 11.44508 10.951 11.705 21.900   100
+##  insertion_sort  4.154  4.9090  5.40377  4.909  5.287 20.390   100
+##  selection_sort 23.033 24.5440 26.92586 25.676 26.431 65.322   100
+##      shell_sort 12.083 12.8390 13.59732 13.593 13.971 17.747   100
+##      merge_sort 33.606 35.1155 36.99980 35.871 36.815 81.936   100
+##      quick_sort 19.635 20.7680 21.81724 21.523 22.278 35.494   100
+## 
+## 
+## $`100`
+## $`100`$already_sorted
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort  12.461  13.4045  14.80179  13.9710  14.7260   50.596
+##  insertion_sort  16.614  17.7470  19.26114  18.5020  19.6350   53.618
+##  selection_sort 405.146 428.5555 455.22812 434.5970 441.9595 2031.390
+##      shell_sort 158.207 169.5340 174.05437 171.9890 174.4430  251.093
+##      merge_sort 446.302 462.3495 486.47674 468.2015 475.1875 1953.231
+##      quick_sort 237.121 242.5965 252.10423 246.7500 250.9035  448.946
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$sorted_backwards
+## Unit: microseconds
+##            expr      min        lq      mean    median        uq      max
+##     bubble_sort 1202.598 1208.2625 1303.7446 1213.5480 1232.9930 3158.471
+##  insertion_sort  837.854  843.1405  921.4809  847.4825  863.7185 4646.520
+##  selection_sort  363.612  368.3310  394.0636  371.1630  375.3165 1560.168
+##      shell_sort  256.001  262.4200  273.9586  268.4610  276.2015  405.145
+##      merge_sort  462.161  467.8245  519.9418  471.2225  480.6615 2536.594
+##      quick_sort  302.066  309.8060  403.1823  314.5260  321.7000 4740.916
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$one_off
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort  24.544 140.4610 313.06486 302.4430 493.5000  614.703
+##  insertion_sort  19.257  24.7325  31.53621  28.3190  37.3815   93.641
+##  selection_sort 385.889 410.4320 429.83955 424.2140 435.9185  644.910
+##      shell_sort 160.473 174.4435 199.45813 181.2400 190.3020 1720.263
+##      merge_sort 453.477 471.2225 501.90097 478.9635 487.2695 2157.125
+##      quick_sort 232.213 241.2755 252.88209 245.8060 251.6585  406.279
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$extreme_out_of_place_low
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort  36.248  37.3810  41.00585  38.3250  39.6460  114.408
+##  insertion_sort  34.738  35.8710  37.85690  37.0030  37.7590   95.151
+##  selection_sort 332.272 336.8035 345.97488 341.1455 348.8860  512.757
+##      shell_sort 185.393 189.9240 248.21146 192.1900 196.7205 4943.677
+##      merge_sort 465.559 470.6560 517.40069 474.8095 486.3255 1555.637
+##      quick_sort 398.727 406.2780 413.34301 409.8655 415.7180  515.022
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## $`100`$extreme_out_of_place_high
+## Unit: microseconds
+##            expr     min       lq      mean   median       uq      max
+##     bubble_sort 600.733 603.7530 618.73220 606.3965 610.9280  877.122
+##  insertion_sort  33.227  34.9270  36.47492  35.8710  37.0030   57.016
+##  selection_sort 412.319 434.2195 478.70236 441.9605 452.1545 2014.399
+##      shell_sort 186.903 196.3430 203.60771 199.3640 202.9505  343.600
+##      merge_sort 453.476 468.7685 478.01139 474.0545 483.4940  641.134
+##      quick_sort 390.798 397.5940 406.88247 403.2570 410.8090  499.163
+##  neval
+##    100
+##    100
+##    100
+##    100
+##    100
+##    100
+## 
+## 
+## $`1000`
+## $`1000`$already_sorted
+## Unit: microseconds
+##            expr       min         lq       mean     median         uq
+##     bubble_sort   118.938   122.7145   125.2293   123.8470   124.9800
+##  insertion_sort   160.095   173.1215   179.9446   176.7085   180.2955
+##  selection_sort 37976.027 40139.3805 41979.1740 41148.0905 42485.4850
+##      shell_sort  2473.915  2639.6730  2711.7011  2659.6850  2711.6030
+##      merge_sort  5508.161  5669.7660  5904.4860  5727.1585  5865.5425
+##      quick_sort  2419.921  2472.0275  2631.5028  2515.6385  2590.2110
+##        max neval
+##    190.302   100
+##    339.446   100
+##  78487.514   100
+##   3978.956   100
+##   8174.642   100
+##   4552.502   100
+## 
+## $`1000`$sorted_backwards
+## Unit: milliseconds
+##            expr        min         lq       mean     median         uq
+##     bubble_sort 119.926719 125.916297 145.520829 131.078781 140.520965
+##  insertion_sort  80.648036  81.483625  94.312221  84.150484  92.082907
+##  selection_sort  32.526014  33.604575  37.316290  35.173049  36.766822
+##      shell_sort   8.696838   8.955859   9.993925   9.211671  10.807897
+##      merge_sort   5.562533   5.812304   6.883174   5.923312   6.473071
+##      quick_sort  13.433977  13.695830  15.630264  14.031500  14.988104
+##        max neval
+##  503.02934   100
+##  230.10768   100
+##   96.47664   100
+##   17.67233   100
+##   37.21709   100
+##   66.35657   100
+## 
+## $`1000`$one_off
+## Unit: microseconds
+##            expr       min         lq       mean    median         uq
+##     bubble_sort   228.437 18511.8840 31387.2317 32937.767 45544.2735
+##  insertion_sort   170.290   228.0595   298.5355   281.488   342.2785
+##  selection_sort 34009.910 38420.0630 43365.4083 40465.234 43320.5060
+##      shell_sort  2622.305  2742.9420  2972.1797  2835.639  3037.8335
+##      merge_sort  5570.839  5821.3655  6481.3023  6097.755  7043.7855
+##      quick_sort  2408.217  2505.8215  2801.4447  2584.358  2725.3845
+##         max neval
+##   72868.722   100
+##     691.730   100
+##  110446.778   100
+##    7030.570   100
+##    9318.337   100
+##    5160.409   100
+## 
+## $`1000`$extreme_out_of_place_low
+## Unit: microseconds
+##            expr       min         lq       mean     median         uq
+##     bubble_sort   350.019   356.2485   382.0074   358.7030   363.8010
+##  insertion_sort   341.712   346.2430   384.9525   350.2075   361.9125
+##  selection_sort 28976.370 29215.9445 31428.6714 29654.3170 30825.9535
+##      shell_sort  2753.326  2784.4760  3106.6704  2840.9245  2981.1965
+##      merge_sort  5648.621  5823.8195  6715.9656  6005.2470  7342.6420
+##      quick_sort 24369.118 24725.1780 26628.7065 25001.9450 26438.0765
+##        max neval
+##   1872.427   100
+##   1228.651   100
+##  56157.338   100
+##   7841.238   100
+##  13042.803   100
+##  51476.081   100
+## 
+## $`1000`$extreme_out_of_place_high
+## Unit: microseconds
+##            expr       min         lq       mean    median         uq
+##     bubble_sort 57139.050 58246.3075 63256.8913 59799.489 63209.6185
+##  insertion_sort   323.211   336.6145   382.4191   342.090   350.2075
+##  selection_sort 38643.214 41135.0640 45581.9293 43431.516 46338.7045
+##      shell_sort  2748.417  2910.3995  3196.6179  2999.698  3093.9040
+##      merge_sort  5509.671  5780.2090  6566.5376  5974.664  6972.6115
+##      quick_sort 24284.163 24741.6030 27066.5577 25469.014 26819.2455
+##         max neval
+##  130770.109   100
+##    1304.167   100
+##   88143.032   100
+##   10108.616   100
+##   14911.077   100
+##   53240.519   100</code></pre>
+<p>It’s not easy to detect any obvious trend with only numbers, so in the next post, I’ll try to find ways to visualize these results to make differences more apparent.</p>

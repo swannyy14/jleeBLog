@@ -1,0 +1,449 @@
+---
+title: Sorting Comparison
+author: John Lee
+date: '2019-02-25'
+slug: sorting-comparison
+categories:
+  - coding
+tags:
+  - coding
+subtitle: ''
+---
+As I'm self studying algorithms and data structures with python from [here](https://runestone.academy/runestone/static/pythonds/index.html), I figured I could try to do some experiments with different sorting algorithms using my own implementations in R.
+
+Types of sorting algorithms I will use:
+
+- Bubble Sort
+- Insertion Sort
+- Selection Sort
+- Shell Sort
+- Merge Sort
+- Quick Sort
+
+I will be dealing with a vector of type `double`. It can be a collection of any real positive numbers.
+```{r seed}
+set.seed(3706)
+```
+
+The following function is used as a sanity check to confirm that each function sorts the given vector as it should.
+```{r order_check_function}
+check_works_correct <- function(myFunc){
+  tmp <- function(myfunc) {
+    x <- sample(100, 50) # integers; This checks that the algorithm works as it should even with duplicates
+    y <- runif(50, 0, 500)
+    return(identical(sort(x), myfunc(x)) && identical(sort(y), myfunc(y))) # compare to R's sort function
+  }
+  return(all(replicate(n = 100, tmp(myFunc))))
+}
+```
+
+**Bubble Sort**
+```{r Bubble_Sort}
+bubble_sort <- function(x) {
+  pass_remain <- length(x)
+  swapped <- TRUE
+  while ((pass_remain >= 1) & swapped) {
+    swapped <- FALSE
+    a <- 1
+    b <- 2
+    while (a < pass_remain) {
+      if (x[a] > x[b]) {
+        tmp <- x[a]
+        x[a] <- x[b]
+        x[b] <- tmp
+        swapped <- TRUE
+      }
+      a <- a + 1
+      b <- b + 1
+    }
+    pass_remain <- pass_remain - 1
+  }
+  return(x)
+}
+
+check_works_correct(bubble_sort)
+```
+
+**Insertion Sort**
+```{r insertion_sort}
+insertion_sort <- function(x) {
+  for (i in 2:length(x)) {
+    item <- x[i]
+    pos <- i
+    while ((x[pos - 1] > item) && (pos > 1)) {
+      x[pos] <- x[pos - 1]
+      pos <- pos - 1
+    }
+    x[pos] <- item
+  }
+  return(x)
+}
+
+check_works_correct(insertion_sort)
+```
+
+**Selection Sort**
+```{r selection_sort}
+selection_sort <- function(x) {
+  for (i in seq(length(x), 1, -1)) {
+    max_ind <- 1
+    for (j in 1:i) {
+      if (x[j] > x[max_ind]) {
+        max_ind <- j
+      }
+    }
+    tmp <- x[i]
+    x[i] <- x[max_ind]
+    x[max_ind] <- tmp
+  }
+  return(x)
+}
+
+check_works_correct(selection_sort)
+```
+
+**Shell Sort**
+```{r shell_sort}
+shell_sort <- function(x) {
+  # choose max increment (Hibbard Increment)
+  k <- floor(log(length(x)+1, 2))
+  # sort all the sublists with the increment, while decreasing the increment
+  while (k > 0) {
+    gap <- 2^k - 1
+    # sort each sublist with insertion sort
+    for (i in 1:gap) {
+      compare_pos <- i + gap
+      while (compare_pos < (length(x) + 1)) {
+        item <- x[compare_pos]
+        pos <- compare_pos
+        while (x[pos-gap] > item && pos > i) {
+          x[pos] <- x[pos-gap]
+          pos <- pos-gap
+        }
+        x[pos] <- item
+        compare_pos <- compare_pos + gap
+      }
+    }
+    # decrement
+    k <- k - 1
+  }
+  return(x)
+}
+
+check_works_correct(shell_sort)
+```
+
+**Merge Sort**
+```{r merge_sort}
+# merge sort with recursion
+merge_sort <- function(x) {
+  if (length(x) < 2) { # base case
+    return(x)
+  } else {
+    break_point <- length(x) %/% 2
+    
+    # break the vector into two
+    left <- x[1:break_point]
+    right <- x[(break_point+1):length(x)]
+    
+    # recurecurecursionsionsion
+    left <- merge_sort(left)
+    right <- merge_sort(right)
+    
+    insert_pos <- 1
+    left_pos <- 1
+    right_pos <- 1
+    
+    # merge left and right
+    while (left_pos <= length(left) && right_pos <= length(right)) {
+      if (left[left_pos] <= right[right_pos]) {
+        x[insert_pos] <- left[left_pos]
+        left_pos <- left_pos + 1
+      } else {
+        x[insert_pos] <- right[right_pos]
+        right_pos <- right_pos + 1
+      }
+      insert_pos <- insert_pos + 1
+    }
+    
+    if (left_pos <= length(left)) {
+      while (left_pos <= length(left)) {
+        x[insert_pos] <- left[left_pos]
+        left_pos <- left_pos + 1
+        insert_pos <- insert_pos + 1
+      }
+    }
+    
+    if (right_pos <= length(right)) {
+      while (right_pos <= length(right)) {
+        x[insert_pos] <- right[right_pos]
+        right_pos <- right_pos + 1
+        insert_pos <- insert_pos + 1
+      }
+    }
+    
+    return(x)
+  }
+}
+check_works_correct(merge_sort)
+```
+
+**Quick Sort**
+```{r quick_sort}
+quick_sort <- function(x) {
+  low <- 1
+  high <- length(x)
+  x <- quick_sort_helper(x, low, high)
+  return(x)
+}
+
+quick_sort_helper <- function(x, low, high) {
+  if (low >= high) {
+    return(x)
+  } else {
+    # choose pivot
+    mid <- (low + high) %/% 2
+    if ((x[low] < x[mid] && x[mid] < x[high]) || (x[high] < x[mid] && x[mid] < x[low])) {
+      median_ind <- mid
+    } else if ((x[mid] < x[low] && x[low] < x[high]) || (x[high] < x[low] && x[low] < x[mid])) {
+      median_ind <- low
+    } else {
+      median_ind <- high
+    }
+    
+    # put pivot to last index
+    pivot <- x[median_ind]
+    if (median_ind != high) {
+      x[median_ind] <- x[high]
+      x[high] <- pivot
+    } 
+    
+    left <- low
+    right <- high-1
+    
+    # rearrange the values around the pivot
+    done <- FALSE
+    while (!done) {
+      while (left <= right && x[left] < pivot) {
+        left <- left + 1
+      }
+      while (right >= left && x[right] >= pivot) {
+        right <- right - 1
+      }
+      if (left > right) {
+        done <- TRUE
+      } else {
+        tmp <- x[right]
+        x[right] <- x[left]
+        x[left] <- tmp
+      }
+    }
+    x[high] <- x[left]
+    x[left] <- pivot
+    
+    x <- quick_sort_helper(x, low, left-1)
+    x <- quick_sort_helper(x, left+1, high)
+  }
+  return(x)
+}
+
+check_works_correct(quick_sort)
+```
+
+Now I'll compare the runtime of each sort, varying the size and shape of the graphs.
+
+I built the function `generate_random_sequence`, which accepts the following to generate a random sequence:
+
+- `trend`: a function that describes the general trend of the sequence of the sequences
+- `n`: number of points
+- `low`: lowest `x` value. Defaults to 0.
+- `high`: highest `x` value. Defaults to 10.
+- `noise`: a function to be used to generate noise for the sequence. Defaults to a Gaussian Distribution with mean 0 and sd 5
+
+```{r random_sequence_generator}
+generate_random_sequence <- function(trend, n, low=0, high=10, noise = function(x) rnorm(x, 0, 5)) {
+  # trend: a function; general trend of the sequence
+  # noise: a function; amount of noise you want to add to a sequence
+  x <- trend(seq(low, high, length.out = n)) + noise(n)
+  if (any(x <= 0)) {
+    x <- x + abs(min(x)) + 1
+  }
+  return(x)
+}
+```
+
+For example, suppose I want to generate a sequence of length `n = 100` that follows a quadratic trend. (I put less emphasis on the aesthetics of the graphs. I just wanted to quickly demonstrate the graphs.)
+```{r example1}
+trend1 <- function(x) (x-5)^2 # quadratic trend
+x1 <- generate_random_sequence(trend1, 100)
+
+par(mfrow = c(1, 2), mar = c(1, 0.1, 2, 2), oma=c(1.5,2,2,1))
+plot(x1, xaxt = 'n', main = 'Scatterplot', xlab='')
+barplot(x1, main = 'Barplot')
+mtext(expression(bold("Sequence with Quadratic Trend")), outer=TRUE, cex=1.5)
+```
+
+Create various types of trends
+```{r create_trends}
+quadratic_trend <- function(x) (x-5)^2
+right_skew_trend <- function(x) dgamma(x, 4, 2) * 10
+left_skew_trend <- function(x) dgamma(10-x, 4, 2) * 10
+symmetrical_trend <- function(x) dnorm(x, 5, 1.3) * 10
+flat_trend <- function(x) dunif(x, 0, 10) * 10
+sine_trend <- function(x) sin(x*2) * 5 
+
+trend_list <- list(
+  # all range from 0 to 10
+  quadratic_trend = quadratic_trend,
+  right_skew_trend = right_skew_trend, 
+  left_skew_trend = left_skew_trend, 
+  symmetrical_trend = symmetrical_trend, 
+  flat_trend = flat_trend, 
+  sine_trend = sine_trend
+)
+
+par(mfrow = c(1, 2))
+for (i in 1:length(trend_list)) {
+  plot(trend_list[[i]], 0, 10, main = names(trend_list)[i], xaxt = "n", xlab = "")
+}
+```
+
+What they look like when noise is added:
+```{r barplots, eval=FALSE}
+par(mfrow = c(1,2))
+barplot(generate_random_sequence(quadratic_trend, 100, noise = function(x) rnorm(x, 0, 5)), main = "Quadratic Trend")
+barplot(generate_random_sequence(right_skew_trend, 100, noise = function(x) rnorm(x, 0, 1)), main = "Right Skew Trend")
+barplot(generate_random_sequence(left_skew_trend, 100, noise = function(x) rnorm(x, 0, 1)), main = "Left Skew Trend")
+barplot(generate_random_sequence(symmetrical_trend, 100, noise = function(x) rnorm(x, 0, 0.7)), main = "Symmetrical Trend")
+barplot(generate_random_sequence(flat_trend, 100, noise = function(x) rnorm(x, 0, 0.8)), main = "Flat Trend")
+barplot(generate_random_sequence(sine_trend, 100, noise = function(x) rnorm(x, 0, 2)), main = "Sine Trend")
+```
+```{r barplots_evalled, echo=FALSE}
+par(mfrow = c(1,2))
+barplot(generate_random_sequence(quadratic_trend, 100, noise = function(x) rnorm(x, 0, 5)), main = "Quadratic Trend")
+barplot(generate_random_sequence(right_skew_trend, 100, noise = function(x) rnorm(x, 0, 1)), main = "Right Skew Trend")
+barplot(generate_random_sequence(left_skew_trend, 100, noise = function(x) rnorm(x, 0, 1)), main = "Left Skew Trend")
+barplot(generate_random_sequence(symmetrical_trend, 100, noise = function(x) rnorm(x, 0, 0.7)), main = "Symmetrical Trend")
+barplot(generate_random_sequence(flat_trend, 100, noise = function(x) rnorm(x, 0, 0.8)), main = "Flat Trend")
+barplot(generate_random_sequence(sine_trend, 100, noise = function(x) rnorm(x, 0, 2)), main = "Sine Trend")
+```
+
+Also, consider some special cases, such as already sorted, sorted backwards, etc.
+```{r construct_special_cases}
+already_sorted <- function(n) seq(1, n)
+sorted_backwards <- function(n) seq(n, 1, -1)
+one_off <- function(n) {
+  mySeq <- seq(1, n)
+  random_index <- sample(mySeq, 2)
+  mySeq[random_index] <- mySeq[random_index[c(2,1)]]
+  return(mySeq)
+}
+extreme_out_of_place <- function(n, lowest=TRUE) {
+  mySeq <- seq(1,n)
+  index <- ifelse(lowest, 1, length(mySeq))
+  replace_val <- ifelse(lowest, n+1, 0)
+  mySeq[index] <- replace_val
+  return(mySeq)
+}
+
+special_case_list <- list(
+  already_sorted = already_sorted,
+  sorted_backwards = sorted_backwards,
+  one_off = one_off,
+  extreme_out_of_place_low = function(x) extreme_out_of_place(x, TRUE),
+  extreme_out_of_place_high = function(x) extreme_out_of_place(x, FALSE)
+)
+
+par(mfrow = c(1,2))
+for (i in 1:length(special_case_list)) {
+  barplot(special_case_list[[i]](100), main = names(special_case_list)[i], cex.main = 0.9)
+}
+```
+
+Now that I have the tools to construct random sequences, I can finally start generating sequences and do benchmarks.
+
+Microbenchmark for trends:
+
+```{r trend_microbenchmark}
+library(microbenchmark)
+
+# each trend uses different noise scale.
+noise_list <- list(
+  "quadratic_trend" = function(x) rnorm(x, 0, 5),
+  "right_skew_trend" = function(x) rnorm(x, 0, 1),
+  "left_skew_trend" = function(x) rnorm(x, 0, 1),
+  "symmetrical_trend" = function(x) rnorm(x, 0, 0.7),
+  "flat_trend" = function(x) rnorm(x, 0, 0.8),
+  "sine_trend" = function(x) rnorm(x, 0, 2)
+)
+
+# deprecated
+# random_sequence_with_trend <- function(n) {
+#   mapply(
+#     function(trend, noise) generate_random_sequence(trend = trend, n = n, noise = noise),
+#     trend = trend_list,
+#     noise = trend_noise,
+#     SIMPLIFY = FALSE
+#     )
+# }
+
+N <- c(10, 100, 1000) # size of sequence
+
+# loop through each N and trends
+trend_sort_time <- setNames(
+  rep(list(setNames(vector("list", length(trend_list)), names(trend_list))), length(N)),
+  N)
+print(str(trend_sort_time))
+
+for (n in N) {
+  for (trend in names(trend_list)) {
+    trend_sort_time[[as.character(n)]][[trend]] <-
+      microbenchmark(
+        "bubble_sort" = bubble_sort(Seq),
+        "insertion_sort" = insertion_sort(Seq),
+        "selection_sort" = selection_sort(Seq),
+        "shell_sort" = shell_sort(Seq),
+        "merge_sort" = merge_sort(Seq),
+        "quick_sort" = quick_sort(Seq),
+        times = 100L,
+        setup = assign("Seq", 
+                       generate_random_sequence(
+                         trend=trend_list[[trend]],
+                         n=n,noise = noise_list[[trend]]))
+      )
+  }
+}
+
+print(trend_sort_time)
+```
+
+Microbenchmark for Special Cases
+```{r special_case_benchmark}
+special_case_sort_time <- setNames(
+  rep(list(setNames(vector("list", length(special_case_list)), names(special_case_list))), length(N)),
+  N)
+print(str(special_case_sort_time))
+
+for (n in N) {
+  for (sc in names(special_case_list)) {
+    special_case_sort_time[[as.character(n)]][[sc]] <-
+      microbenchmark(
+        "bubble_sort" = bubble_sort(Seq),
+        "insertion_sort" = insertion_sort(Seq),
+        "selection_sort" = selection_sort(Seq),
+        "shell_sort" = shell_sort(Seq),
+        "merge_sort" = merge_sort(Seq),
+        "quick_sort" = quick_sort(Seq),
+        times = 100L,
+        setup = assign("Seq", special_case_list[[sc]](n))
+      )
+  }
+}
+
+print(special_case_sort_time)
+```
+```{r, echo=FALSE}
+save(trend_sort_time, special_case_sort_time,file="../../static/Dataset/sort_comparisons")
+```
+
+It's not easy to detect any obvious trend with only numbers, so in the next post, I'll try to find ways to visualize these results to make differences more apparent.
