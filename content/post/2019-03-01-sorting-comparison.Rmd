@@ -443,7 +443,7 @@ for (n in N) {
 print(special_case_sort_time)
 ```
 ```{r, echo=FALSE}
-save(trend_sort_time, special_case_sort_time,file="../../static/Dataset/sort_comparisons")
+save(trend_sort_time, special_case_sort_time,file="../../static/Dataset/sort_comparisons.R")
 ```
 
 It's not easy to detect any obvious trend with only numbers, so in the next post, I'll try to find ways to visualize these results to make differences more apparent.
