@@ -364,7 +364,7 @@ Now that I have the tools to construct random sequences, I can finally start gen
 
 Microbenchmark for trends:
 
-```{r trend_microbenchmark}
+```{r trend_microbenchmark, cache=TRUE}
 library(microbenchmark)
 
 # each trend uses different noise scale.
@@ -418,7 +418,7 @@ print(trend_sort_time)
 ```
 
 Microbenchmark for Special Cases
-```{r special_case_benchmark}
+```{r special_case_benchmark, cache=TRUE}
 special_case_sort_time <- setNames(
   rep(list(setNames(vector("list", length(special_case_list)), names(special_case_list))), length(N)),
   N)
