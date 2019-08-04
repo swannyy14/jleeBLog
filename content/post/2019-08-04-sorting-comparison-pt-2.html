@@ -1,7 +1,7 @@
 ---
 title: Sorting Comparison Pt. 2
 author: John Lee
-date: '2019-04-05'
+date: '2019-08-04'
 slug: sorting-comparison-pt-2
 categories:
   - coding
@@ -15,7 +15,9 @@ subtitle: ''
 
 
 <p>Load all the datasets that I’ve saved from the previous benchmarks</p>
-<pre class="r"><code>library(microbenchmark)
+<pre class="r"><code>set.seed(12345)
+
+library(microbenchmark)
 library(tidyverse)
 library(knitr)
 library(kableExtra)
@@ -89,7 +91,7 @@ load(&quot;../../static/Dataset/sort_comparisons&quot;)</code></pre>
   main = &quot;Performance on Already Sorted Sequence (Length 10)&quot;,
   xlab = &quot;Algorithm&quot;
 )</code></pre>
-<p><img src="/post/2019-04-05-sorting-comparison-pt-2_files/figure-html/simple_boxplot-1.png" width="672" /></p>
+<p><img src="/post/2019-08-04-sorting-comparison-pt-2_files/figure-html/simple_boxplot-1.png" width="672" /></p>
 <p>However, using this is limited in a sense that I can only compare algorithms within the same type of sequence. Furthermore, I have contrived sequences with 5 special cases and 6 trends, each of which has 3 lengths. Plotting for all these cases requires repetetive copying and pasting of the code 33 times, which could bore not only the creator of these plots (me) and the reader. Plus, it would be hard to compare across the plots. To give myself more freedom to plot these boxes, I will first make some changes in how the data is stored.</p>
 </div>
 <div id="data-modification" class="section level2">
@@ -1015,15 +1017,15 @@ sine_trend
 <h2>Attempt #2 at Visualization</h2>
 <p>Now that I have a <code>data.frame</code> in a tidy form, I can use <code>ggplot2</code> package to various graphs.</p>
 <p>I first wanted to compare the performance of each algorithm for each case. The following plot allows me to compare the algorithm performance for each case in each lengths.</p>
-<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png" alt="Compare Performances of Each Algorithms within Cases" /></a></p>
+<p><a href="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg1.png"><img src="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg1.png" alt="Compare Performances of Each Algorithms within Cases" /></a></p>
 <p>I already see some interesting trends. For each 10 fold increase in the length of the sequence, the average log-time duration for the sorting increases by 1 ~ 2. First off, the sorting can be divided into two kinds of “groups”. First group is comprised of <code>bubble sort</code>, <code>insertion sort</code>, and <code>selection sort</code>. The average time complexity for these algorithms is <span class="math inline">\(\Theta(n^2)\)</span>. In the second group are <code>quick sort</code>, <code>merge sort</code>, and <code>shell sort</code>. The average case for these algorithms is <span class="math inline">\(\Theta(n log(n))\)</span> (actually for shell sort it’s <span class="math inline">\(\Theta(n (log(n)^2)\)</span>… explains why this performs closer to <span class="math inline">\(\Theta(n^2)\)</span> group).</p>
 <p>In <code>N = 10</code>, the <span class="math inline">\(\Theta(n^2)\)</span> group generally outperforms <span class="math inline">\(\Theta(n log(n))\)</span> group. The two groups have similar performance in <code>N = 100</code>, and <span class="math inline">\(\Theta(nlog(n))\)</span> group far outperformes the other group in <code>N = 1000</code>.</p>
 <p>Some algorithms handle specific cases better than other. We can see that <code>bubble sort</code> consistently does better in all sequence lengths in <code>already_sorted</code> case and <code>extreme_out_of_place_high</code> case. This is expected since the algorithm stops as soon as no swap happens, and bubbles largest values to the top. However the algorithm falls off in all other cases and trends.</p>
 <p>We can see that regardless of the trend, when the sequence is large enough, the algorithms of <span class="math inline">\(\Theta(nlog(n))\)</span> group perform consistently better than others.</p>
 <p>What I like about the boxplot is the simplicity as well as the information it gives, especially if many data points are involved. There is a phenomenon that only occurs in <code>one_off</code> case that does not occur in other cases, specifically at <code>N = 100</code> and <code>N = 1000</code>. While most algorithm’s log-time performance is concentrated around the box / Interquantile Range (IQR), <code>bubble sort</code>’s box shape is much clearer. <code>one_off</code> displaces a single value in a sorted sequence randomly. Because <code>bubble_sort</code> carries the larger value to the top by making a comparison with the next value in line and swapping at every comparison, it is really dependent on when the swap starts happening. My guess is that reliance on the randomness of where the value is displaced caused the variability. I designed the case such that all indices in a sequence has equal chance of being displaced, hence the time to sort the sequence should be uniformly distributed. Since the y-axis of this plot is plotted in log time, a boxplot with some trailing outliers below the lower tail is expected, which is exactly what the box in <code>N = 1000</code> looks like.</p>
-<p><img src="/post/2019-04-05-sorting-comparison-pt-2_files/figure-html/loguniform_ex-1.png" width="384" /></p>
+<p><img src="/post/2019-08-04-sorting-comparison-pt-2_files/figure-html/loguniform_ex-1.png" width="384" /></p>
 <p>Next plot compares the algorithmic performance in each case. Contrary to the last plot, the cases are “side-by-side”, divided by the algorithm type.</p>
-<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png" alt="Compare Performances of Each Case within Algorithms" /></a></p>
+<p><a href="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg2.png"><img src="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg2.png" alt="Compare Performances of Each Case within Algorithms" /></a></p>
 <p>As <code>N</code> gets larger, <code>shell_sort</code>, <code>merge_sort</code>, and <code>quick_sort</code> outperforms the other algorithms, by order of from 10 up to 1000. <span class="math inline">\(\Theta(n^2)\)</span> group relatively performs well on the special cases than <span class="math inline">\(\Theta(nlog(n))\)</span> group.</p>
 </div>
 <div id="comparison-of-means" class="section level1">
@@ -1035,7 +1037,7 @@ sine_trend
     summarise(mu_time = mean(time)) %&gt;% # arithmatic mean of time
     .[with(., order(N, case,expr)),] %&gt;% # order by N, case, then expr 
     ungroup()</code></pre>
-<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
+<p><a href="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg3.png"><img src="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg3.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
 <p>As interesting as this plot really is, it’s honestly hard to see the real differences in changes in duration of the sort. I am curious to see if plotting the differences between the lengths help. The duration grows multiplicatively, which means I’ll be dividing to quantify the jump in the duration when the length of sequence is changed.</p>
 <pre class="r"><code>grouped_means_10 &lt;-
   dplyr::filter(grouped_means, N == 10) %&gt;%
@@ -1060,7 +1062,7 @@ grouped_means_diff &lt;-
     dplyr::select(case, expr, contains(&quot;diff&quot;)) %&gt;%
     gather(key = &quot;N_compared&quot;, value = &quot;time_diff&quot;, diff_10_100:diff_10_1000) %&gt;%
   mutate(&quot;N_compared&quot; = factor(N_compared, c(&quot;diff_10_100&quot;, &quot;diff_100_1000&quot;, &quot;diff_10_1000&quot;)))</code></pre>
-<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
+<p><a href="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg4.png"><img src="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg4.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
 <p>You can actually see here the time difference between varying lengths. Let’s focus on the blue bar, which represents the jump from <code>N = 10</code> to <code>N = 1000</code>, and on the <code>trend</code>s. The duration increases by factors of almost 5000 (the plot is on the log scale) for <code>bubble_sort</code> and <code>insertion_sort</code>. <code>selection_sort</code> scales surprisingly well, comparably so to the other three best performing algorithms. The <span class="math inline">\(\Theta(n log(n))\)</span> groups scale well. According to the barplot, the time scales almost linearly with the length.</p>
 <p>For me, there’s something soothing about looking at plots places side by side for comparison. I can kind of zone out while at the same time trying to figure out the pattern. I hoped I helped the readers realize the versatility of visualization, and the difference in information conveyed, even with the same data, just by making a few changes such as switching up the x-axis and y-axis, changing the grouping variable, or manipulating the numbers.</p>
 </div>

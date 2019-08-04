@@ -1,7 +1,7 @@
 ---
 title: Sorting Comparison Pt. 2
 author: John Lee
-date: '2019-04-05'
+date: '2019-08-04'
 slug: sorting-comparison-pt-2
 categories:
   - coding
@@ -165,12 +165,12 @@ plot1 <- ggplot(mydf) +
   xlab("Algorithm") +
   ylab("Log base 10 of Time")
 
-ggsave(filename = "sort_comparison_gg1.png", plot = plot1, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+ggsave(filename = "sort_comparison_gg1.png", plot = plot1, path = "../../static/img/2019-08-04-sorting-comparison-pt-2")
 ```
 
 I first wanted to compare the performance of each algorithm for each case. The following plot allows me to compare the algorithm performance for each case in each lengths. 
 
-[![Compare Performances of Each Algorithms within Cases](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png)
+[![Compare Performances of Each Algorithms within Cases](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg1.png)](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg1.png)
 
 I already see some interesting trends. For each 10 fold increase in the length of the sequence, the average log-time duration for the sorting increases by 1 ~ 2. First off, the sorting can be divided into two kinds of "groups". First group is comprised of `bubble sort`, `insertion sort`, and `selection sort`. The average time complexity for these algorithms is $\Theta(n^2)$. In the second group are `quick sort`, `merge sort`, and `shell sort`. The average case for these algorithms is $\Theta(n log(n))$ (actually for shell sort it's $\Theta(n (log(n)^2)$... explains why this performs closer to $\Theta(n^2)$ group).
 
@@ -212,7 +212,7 @@ plot2 <-  ggplot(mydf) +
   coord_flip() +
   xlab(NULL)
 
-ggsave(filename = "sort_comparison_gg2.png", plot = plot2, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+ggsave(filename = "sort_comparison_gg2.png", plot = plot2, path = "../../static/img/2019-08-04-sorting-comparison-pt-2")
 
 # ggplot(filter(mydf, N == "100")) +
 #   geom_boxplot(aes(x = case, y = log(time), fill = expr)) +
@@ -228,7 +228,7 @@ ggsave(filename = "sort_comparison_gg2.png", plot = plot2, path = "../../static/
 
 Next plot compares the algorithmic performance in each case. Contrary to the last plot, the cases are "side-by-side", divided by the algorithm type.
 
-[![Compare Performances of Each Case within Algorithms](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png)
+[![Compare Performances of Each Case within Algorithms](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg2.png)](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg2.png)
 
 As `N` gets larger, `shell_sort`, `merge_sort`, and `quick_sort` outperforms the other algorithms, by order of from 10 up to 1000. $\Theta(n^2)$ group relatively performs well on the special cases than $\Theta(nlog(n))$ group.
 
@@ -254,10 +254,10 @@ plot3 <- ggplot(grouped_means) +
   scale_y_log10() +
   ggtitle("Comparison of Log of Mean Time (nanoseconds)")
 
-ggsave(filename = "sort_comparison_gg3.png", plot = plot3, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+ggsave(filename = "sort_comparison_gg3.png", plot = plot3, path = "../../static/img/2019-08-04-sorting-comparison-pt-2")
 ```
 
-[![Comparison of Log of Mean Time (nanoseconds)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png)
+[![Comparison of Log of Mean Time (nanoseconds)](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg3.png)](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg3.png)
 
 As interesting as this plot really is, it's honestly hard to see the real differences in changes in duration of the sort. I am curious to see if plotting the differences between the lengths help. The duration grows multiplicatively, which means I'll be dividing to quantify the jump in the duration when the length of sequence is changed.
 
@@ -297,10 +297,10 @@ plot4 <- ggplot(grouped_means_diff) +
   xlab("Algorithm") +
   ylab("Time Difference Factor")
 
-ggsave(filename = "sort_comparison_gg4.png", plot = plot4, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+ggsave(filename = "sort_comparison_gg4.png", plot = plot4, path = "../../static/img/2019-08-04-sorting-comparison-pt-2")
 ```
 
-[![Comparison of Log of Mean Time (nanoseconds)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png)
+[![Comparison of Log of Mean Time (nanoseconds)](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg4.png)](/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg4.png)
 
 You can actually see here the time difference between varying lengths. Let's focus on the blue bar, which represents the jump from `N = 10` to `N = 1000`, and on the `trend`s. The duration increases by factors of almost 5000 (the plot is on the log scale) for `bubble_sort` and `insertion_sort`. `selection_sort` scales surprisingly well, comparably so to the other three best performing algorithms. The $\Theta(n log(n))$ groups scale well. According to the barplot, the time scales almost linearly with the length.
 
