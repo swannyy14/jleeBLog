@@ -37,6 +37,8 @@ check_works_correct <- function(myFunc){
 }
 ```
 
+# Write Sorting Algorithms
+
 **Bubble Sort**
 ```{r Bubble_Sort}
 bubble_sort <- function(x) {
@@ -252,6 +254,8 @@ check_works_correct(quick_sort)
 
 Now I'll compare the runtime of each sort, varying the size and shape of the graphs.
 
+# Generate Unordered Sequences with Varying Trends
+
 I built the function `generate_random_sequence`, which accepts the following to generate a random sequence:
 
 - `trend`: a function that describes the general trend of the sequence of the sequences
@@ -360,7 +364,13 @@ for (i in 1:length(special_case_list)) {
 }
 ```
 
-Now that I have the tools to construct random sequences, I can finally start generating sequences and do benchmarks.
+# Sorting with Different Algorithms
+
+Now that I have the tools to construct random sequences, I can finally start generating sequences and run benchmarks.
+
+For future convenience, I saved the results in two different lists: `trend_sort_time` and `special_case_sort_time`. Each list are divided by number of unsorted sequences (10, 100, 1000). And for each number are microbenchmarks for each "trends" or "special cases".
+
+`microbenchmark` is used to precisely evaluate the performance of each algorithm. Each sorting algorithm sorts randomly generated data 100 times. On each iteration, sequences are randomly generated, and each algorithm sorts the same sequence.
 
 Microbenchmark for trends:
 
@@ -376,16 +386,6 @@ noise_list <- list(
   "flat_trend" = function(x) rnorm(x, 0, 0.8),
   "sine_trend" = function(x) rnorm(x, 0, 2)
 )
-
-# deprecated
-# random_sequence_with_trend <- function(n) {
-#   mapply(
-#     function(trend, noise) generate_random_sequence(trend = trend, n = n, noise = noise),
-#     trend = trend_list,
-#     noise = trend_noise,
-#     SIMPLIFY = FALSE
-#     )
-# }
 
 N <- c(10, 100, 1000) # size of sequence
 
@@ -443,7 +443,7 @@ for (n in N) {
 print(special_case_sort_time)
 ```
 ```{r, echo=FALSE}
-save(trend_sort_time, special_case_sort_time,file="../../static/Dataset/sort_comparisons.R")
+save(trend_sort_time, special_case_sort_time, file="../../static/Dataset/sort_comparisons")
 ```
 
 It's not easy to detect any obvious trend with only numbers, so in the next post, I'll try to find ways to visualize these results to make differences more apparent.

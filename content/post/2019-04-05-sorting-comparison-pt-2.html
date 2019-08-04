@@ -1,0 +1,1066 @@
+---
+title: Sorting Comparison Pt. 2
+author: John Lee
+date: '2019-04-05'
+slug: sorting-comparison-pt-2
+categories:
+  - coding
+tags:
+  - coding
+  - visualization
+subtitle: ''
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>Load all the datasets that I’ve saved from the previous benchmarks</p>
+<pre class="r"><code>library(microbenchmark)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+load(&quot;../../static/Dataset/sort_comparisons&quot;)</code></pre>
+<div id="blowing-off-the-dust" class="section level2">
+<h2>Blowing off the Dust</h2>
+<p>I see that in my environment, two variables, <code>special_case_sort_time</code> and <code>trend_sort_time</code> are loaded. It’s been a long time since I’ve created these data, so I have an unclear memory as to what these objects are. Usually I use <code>str</code>, <code>class</code> to understand they are. I also make use of <code>head</code> to quickly glance at the data usually if it is a <code>data.frame</code> (<code>glimpse</code> is also a cool function to summarise the data).</p>
+<pre class="r"><code>class(special_case_sort_time)</code></pre>
+<pre><code>## [1] &quot;list&quot;</code></pre>
+<pre class="r"><code>str(special_case_sort_time)</code></pre>
+<pre><code>## List of 3
+##  $ 10  :List of 5
+##   ..$ already_sorted           :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 4 5 4 4 6 4 6 1 2 ...
+##   .. ..$ time: num [1:600] 13971 33227 90242 24543 21145 ...
+##   ..$ sorted_backwards         :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 2 1 1 3 4 4 5 5 2 ...
+##   .. ..$ time: num [1:600] 97039 51352 86844 129510 118939 ...
+##   ..$ one_off                  :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 5 4 5 6 3 2 4 1 3 ...
+##   .. ..$ time: num [1:600] 28319 197475 75516 198230 117806 ...
+##   ..$ extreme_out_of_place_low :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 4 1 2 3 2 2 1 6 6 3 ...
+##   .. ..$ time: num [1:600] 44933 19635 16237 92508 12839 ...
+##   ..$ extreme_out_of_place_high:Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 3 1 1 3 2 4 1 5 2 ...
+##   .. ..$ time: num [1:600] 147257 162360 63434 215977 288094 ...
+##  $ 100 :List of 5
+##   ..$ already_sorted           :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 5 5 6 1 3 2 4 2 2 ...
+##   .. ..$ time: num [1:600] 145747 2551692 2275303 1363068 118939 ...
+##   ..$ sorted_backwards         :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 3 3 4 3 2 1 4 4 5 ...
+##   .. ..$ time: num [1:600] 1909427 871457 818973 808024 1584329 ...
+##   ..$ one_off                  :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 3 4 5 5 1 2 3 2 4 2 ...
+##   .. ..$ time: num [1:600] 1341168 382490 1571492 1991739 491233 ...
+##   ..$ extreme_out_of_place_low :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 5 2 1 5 2 6 6 4 2 ...
+##   .. ..$ time: num [1:600] 91375 1048542 85711 87977 1030418 ...
+##   ..$ extreme_out_of_place_high:Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 3 1 6 1 4 4 5 2 5 3 ...
+##   .. ..$ time: num [1:600] 961699 1365333 908837 1357026 430065 ...
+##  $ 1000:List of 5
+##   ..$ already_sorted           :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 3 2 6 6 6 5 1 2 2 2 ...
+##   .. ..$ time: num [1:600] 86637040 388909 5429612 5423571 5173612 ...
+##   ..$ sorted_backwards         :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 1 2 4 3 4 4 5 4 1 ...
+##   .. ..$ time: num [1:600] 1.26e+07 2.71e+08 2.07e+08 2.78e+07 7.64e+07 ...
+##   ..$ one_off                  :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 4 6 4 4 2 1 6 2 4 ...
+##   .. ..$ time: num [1:600] 12720319 6264821 5382414 6171180 6074898 ...
+##   ..$ extreme_out_of_place_low :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 4 3 6 3 4 1 4 1 3 ...
+##   .. ..$ time: num [1:600] 800472 6164007 66034723 56511003 70829244 ...
+##   ..$ extreme_out_of_place_high:Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 2 4 4 4 2 2 3 1 6 ...
+##   .. ..$ time: num [1:600] 12088627 718537 6023924 6023169 5997493 ...</code></pre>
+<p><code>special_case_sort_time</code> is a list with three elements <code>10</code>, <code>100</code>, and <code>1000</code>. Each is a list containg <code>microbenchmark</code> objects for each special cases.</p>
+</div>
+<div id="attempt-1-at-visualization" class="section level2">
+<h2>Attempt #1 at Visualization</h2>
+<p>For a <code>microbenchmark</code> object, a <code>boxplot</code> method is available to allow us to easily compare different algorithms. <code>autoplot</code> is also available, but I opted with the boxplot. They are essentially the same thing except that autoplot shows the distribution of the data more clearly, which can be done with boxplot by adding another layer of jitter plot.</p>
+<p>With the built-in <code>boxplot.microbenchmark</code>, I can visualize the performance of each algorithm.</p>
+<pre class="r"><code>boxplot(
+  special_case_sort_time$`10`$sorted_backwards,
+  cex.axis = 0.75,
+  unit = &quot;us&quot;,
+  main = &quot;Performance on Already Sorted Sequence (Length 10)&quot;,
+  xlab = &quot;Algorithm&quot;
+)</code></pre>
+<p><img src="/post/2019-04-05-sorting-comparison-pt-2_files/figure-html/simple_boxplot-1.png" width="672" /></p>
+<p>However, using this is limited in a sense that I can only compare algorithms within the same type of sequence. Furthermore, I have contrived sequences with 5 special cases and 6 trends, each of which has 3 lengths. Plotting for all these cases requires repetetive copying and pasting of the code 33 times, which could bore not only the creator of these plots (me) and the reader. Plus, it would be hard to compare across the plots. To give myself more freedom to plot these boxes, I will first make some changes in how the data is stored.</p>
+</div>
+<div id="data-modification" class="section level2">
+<h2>Data Modification</h2>
+<p>I want my final <code>data.frame</code> to have four columns: <code>expr</code>, <code>time</code>, <code>case</code>, <code>N</code>.</p>
+<ul>
+<li><code>expr</code>: name of the sorting algorithm</li>
+<li><code>time</code>: time in nanoseconds</li>
+<li><code>case</code>: name of the special case or trend</li>
+<li><code>N</code>: length of the sequence</li>
+</ul>
+<p>Since there are two objects which are <code>list</code>s of <code>microbenchmark</code> data (actually a <code>list</code> of <code>list</code>s of <code>microbenchmark</code> data), I created a function to modify both objects into the <code>data.frame</code>, and then combine them.</p>
+<p>I wont get into the nitty-gritty of <code>clean_sorting_microbench</code> function, but I’ll provide a quick summary of the function.</p>
+<ul>
+<li>each step is divided by a piping operator, <code>%&gt;%</code>, available from the package <code>dplyr</code></li>
+<li>first step (<code>lapply</code>) involves changing each <code>microbenchmark</code> to a <code>data.frame</code>, adding a new column <code>case</code> to store the name of the cases/trends, and then combine all the cases within each number of sequence lengths</li>
+<li>second step (<code>mapply</code>) adds a new column <code>N</code> to store the length of sequence.</li>
+<li>third step (<code>do.call</code>) combines all <code>data.frame</code> from each sequences lengths.</li>
+</ul>
+<p>Of course, this complication can be avoided using for loops, but I like to make use of vectorized nature in <code>R</code> as well as avoid having to keep track of all the variables for each step. Also, piping these allows me to write the function in logical steps.</p>
+<pre class="r"><code>clean_sorting_microbench &lt;- function(mcb.list) {
+  mcb.list %&gt;%
+  # for each case in microbench data, swith to data.frame &amp; append a new column &quot;case&quot;
+  lapply(
+    # for each &quot;length&quot; element, bind all the cases data.frame
+    function(x) {
+      do.call(
+        function(...) rbind(..., make.row.names = FALSE, stringsAsFactors = FALSE),
+        mapply(
+          # add &quot;case&quot; column
+          function(mb, case) cbind(as.data.frame(mb), &quot;case&quot; = case),
+          mb = x, 
+          case = names(x),
+          SIMPLIFY = FALSE
+        )
+      )
+    }
+  ) %&gt;%
+  # add &quot;N&quot; column
+  mapply(
+    function(a,b) cbind(a, &quot;N&quot; = b),
+    a = .,
+    b = names(.),
+    SIMPLIFY = FALSE
+  ) %&gt;%
+  # bind all data.frame from separate lengths
+  do.call(
+    what = function(...) rbind(..., make.row.names = FALSE, stringsAsFactors = FALSE),
+    .
+  )
+}</code></pre>
+<pre class="r"><code>mydf &lt;- rbind(
+  clean_sorting_microbench(special_case_sort_time),
+  clean_sorting_microbench(trend_sort_time)
+)
+
+head(mydf)</code></pre>
+<pre><code>##          expr  time           case  N
+## 1 bubble_sort 13971 already_sorted 10
+## 2  shell_sort 33227 already_sorted 10
+## 3  merge_sort 90242 already_sorted 10
+## 4  shell_sort 24543 already_sorted 10
+## 5  shell_sort 21145 already_sorted 10
+## 6  quick_sort 73629 already_sorted 10</code></pre>
+<div id="count-number-of-rows" class="section level3">
+<h3>Count Number of Rows</h3>
+<p><strong>N = 10</strong></p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:250px; overflow-x: scroll; width:750px; ">
+<table>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+bubble_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+insertion_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+selection_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+shell_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+merge_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+quick_sort
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+already_sorted
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sorted_backwards
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+one_off
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+extreme_out_of_place_low
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+extreme_out_of_place_high
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+quadratic_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+right_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+left_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+symmetrical_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+flat_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sine_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>N = 100</strong></p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:250px; overflow-x: scroll; width:750px; ">
+<table>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+bubble_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+insertion_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+selection_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+shell_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+merge_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+quick_sort
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+already_sorted
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sorted_backwards
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+one_off
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+extreme_out_of_place_low
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+extreme_out_of_place_high
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+quadratic_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+right_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+left_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+symmetrical_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+flat_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sine_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>N = 1000</strong></p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:250px; overflow-x: scroll; width:750px; ">
+<table>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+bubble_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+insertion_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+selection_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+shell_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+merge_sort
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+quick_sort
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+already_sorted
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sorted_backwards
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+one_off
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+extreme_out_of_place_low
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+extreme_out_of_place_high
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+quadratic_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+right_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+left_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+symmetrical_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+flat_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sine_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Well, it looks like this was a success. Now off to do some cool visualizations.</p>
+</div>
+</div>
+<div id="attempt-2-at-visualization" class="section level2">
+<h2>Attempt #2 at Visualization</h2>
+<p>Now that I have a <code>data.frame</code> in a tidy form, I can use <code>ggplot2</code> package to various graphs.</p>
+<p>I first wanted to compare the performance of each algorithm for each case. The following plot allows me to compare the algorithm performance for each case in each lengths.</p>
+<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png" alt="Compare Performances of Each Algorithms within Cases" /></a></p>
+<p>I already see some interesting trends. For each 10 fold increase in the length of the sequence, the average log-time duration for the sorting increases by 1 ~ 2. First off, the sorting can be divided into two kinds of “groups”. First group is comprised of <code>bubble sort</code>, <code>insertion sort</code>, and <code>selection sort</code>. The average time complexity for these algorithms is <span class="math inline">\(\Theta(n^2)\)</span>. In the second group are <code>quick sort</code>, <code>merge sort</code>, and <code>shell sort</code>. The average case for these algorithms is <span class="math inline">\(\Theta(n log(n))\)</span> (actually for shell sort it’s <span class="math inline">\(\Theta(n (log(n)^2)\)</span>… explains why this performs closer to <span class="math inline">\(\Theta(n^2)\)</span> group).</p>
+<p>In <code>N = 10</code>, the <span class="math inline">\(\Theta(n^2)\)</span> group generally outperforms <span class="math inline">\(\Theta(n log(n))\)</span> group. The two groups have similar performance in <code>N = 100</code>, and <span class="math inline">\(\Theta(nlog(n))\)</span> group far outperformes the other group in <code>N = 1000</code>.</p>
+<p>Some algorithms handle specific cases better than other. We can see that <code>bubble sort</code> consistently does better in all sequence lengths in <code>already_sorted</code> case and <code>extreme_out_of_place_high</code> case. This is expected since the algorithm stops as soon as no swap happens, and bubbles largest values to the top. However the algorithm falls off in all other cases and trends.</p>
+<p>We can see that regardless of the trend, when the sequence is large enough, the algorithms of <span class="math inline">\(\Theta(nlog(n))\)</span> group perform consistently better than others.</p>
+<p>What I like about the boxplot is the simplicity as well as the information it gives, especially if many data points are involved. There is a phenomenon that only occurs in <code>one_off</code> case that does not occur in other cases, specifically at <code>N = 100</code> and <code>N = 1000</code>. While most algorithm’s log-time performance is concentrated around the box / Interquantile Range (IQR), <code>bubble sort</code>’s box shape is much clearer. <code>one_off</code> displaces a single value in a sorted sequence randomly. Because <code>bubble_sort</code> carries the larger value to the top by making a comparison with the next value in line and swapping at every comparison, it is really dependent on when the swap starts happening. My guess is that reliance on the randomness of where the value is displaced caused the variability. I designed the case such that all indices in a sequence has equal chance of being displaced, hence the time to sort the sequence should be uniformly distributed. Since the y-axis of this plot is plotted in log time, a boxplot with some trailing outliers below the lower tail is expected, which is exactly what the box in <code>N = 1000</code> looks like.</p>
+<p><img src="/post/2019-04-05-sorting-comparison-pt-2_files/figure-html/loguniform_ex-1.png" width="384" /></p>
+<p>Next plot compares the algorithmic performance in each case. Contrary to the last plot, the cases are “side-by-side”, divided by the algorithm type.</p>
+<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png" alt="Compare Performances of Each Case within Algorithms" /></a></p>
+<p>As <code>N</code> gets larger, <code>shell_sort</code>, <code>merge_sort</code>, and <code>quick_sort</code> outperforms the other algorithms, by order of from 10 up to 1000. <span class="math inline">\(\Theta(n^2)\)</span> group relatively performs well on the special cases than <span class="math inline">\(\Theta(nlog(n))\)</span> group.</p>
+</div>
+<div id="comparison-of-means" class="section level1">
+<h1>Comparison of Means</h1>
+<p>For my last trick, maybe comparing the means of each algorithm-case pair could help in visualizing the differences.</p>
+<p>Now in here I had two choices for the barplot. The duration increases by factor of ten when the length of sequence also increases by factors of ten. So it’s a good idea to plot y axis on a log scale. I could either calculate the mean first and then log the means, or log-transform the values first and then calculate the log-mean. Turns out, the second method is essentially log of the geometric mean… cool! Anyhow, I think it makes greater sense the use the first approach to compare the means because I’m only really using <code>log</code> to enable visual comparison of the means. Furthermore, interpretation with arithmetic mean in this context after exponentiating seems easier than with geometric mean.</p>
+<pre class="r"><code>grouped_means &lt;- mydf %&gt;%
+  group_by(N, case, expr) %&gt;%
+    summarise(mu_time = mean(time)) %&gt;% # arithmatic mean of time
+    .[with(., order(N, case,expr)),] %&gt;% # order by N, case, then expr 
+    ungroup()</code></pre>
+<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
+<p>As interesting as this plot really is, it’s honestly hard to see the real differences in changes in duration of the sort. I am curious to see if plotting the differences between the lengths help. The duration grows multiplicatively, which means I’ll be dividing to quantify the jump in the duration when the length of sequence is changed.</p>
+<pre class="r"><code>grouped_means_10 &lt;-
+  dplyr::filter(grouped_means, N == 10) %&gt;%
+    dplyr::rename(&quot;mu_time_10&quot; = mu_time) %&gt;%
+    dplyr::select(-N)
+grouped_means_100 &lt;- dplyr::filter(grouped_means, N == 100) %&gt;%
+  dplyr::rename(&quot;mu_time_100&quot; = mu_time) %&gt;%
+    dplyr::select(-N)
+grouped_means_1000 &lt;- dplyr::filter(grouped_means, N == 1000) %&gt;%
+  dplyr::rename(&quot;mu_time_1000&quot; = mu_time) %&gt;%
+    dplyr::select(-N)
+
+grouped_means_diff &lt;-
+  grouped_means_10 %&gt;% 
+    full_join(grouped_means_100, by = c(&quot;case&quot;, &quot;expr&quot;)) %&gt;%
+    full_join(grouped_means_1000, by = c(&quot;case&quot;, &quot;expr&quot;)) %&gt;%
+    mutate(
+      diff_10_100 = mu_time_100 / mu_time_10,
+      diff_100_1000 = mu_time_1000 / mu_time_100,
+      diff_10_1000 = mu_time_1000 / mu_time_10
+    ) %&gt;%
+    dplyr::select(case, expr, contains(&quot;diff&quot;)) %&gt;%
+    gather(key = &quot;N_compared&quot;, value = &quot;time_diff&quot;, diff_10_100:diff_10_1000) %&gt;%
+  mutate(&quot;N_compared&quot; = factor(N_compared, c(&quot;diff_10_100&quot;, &quot;diff_100_1000&quot;, &quot;diff_10_1000&quot;)))</code></pre>
+<p><a href="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png"><img src="/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
+<p>You can actually see here the time difference between varying lengths. Let’s focus on the blue bar, which represents the jump from <code>N = 10</code> to <code>N = 1000</code>, and on the <code>trend</code>s. The duration increases by factors of almost 5000 (the plot is on the log scale) for <code>bubble_sort</code> and <code>insertion_sort</code>. <code>selection_sort</code> scales surprisingly well, comparably so to the other three best performing algorithms. The <span class="math inline">\(\Theta(n log(n))\)</span> groups scale well. According to the barplot, the time scales almost linearly with the length.</p>
+<p>For me, there’s something soothing about looking at plots places side by side for comparison. I can kind of zone out while at the same time trying to figure out the pattern. I hoped I helped the readers realize the versatility of visualization, and the difference in information conveyed, even with the same data, just by making a few changes such as switching up the x-axis and y-axis, changing the grouping variable, or manipulating the numbers.</p>
+</div>

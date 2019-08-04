@@ -1,0 +1,307 @@
+---
+title: Sorting Comparison Pt. 2
+author: John Lee
+date: '2019-04-05'
+slug: sorting-comparison-pt-2
+categories:
+  - coding
+tags:
+  - coding
+  - visualization
+subtitle: ''
+---
+
+Load all the datasets that I've saved from the previous benchmarks
+
+```{r load_stuff, message = FALSE, warning = FALSE}
+set.seed(12345)
+
+library(microbenchmark)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+load("../../static/Dataset/sort_comparisons")
+```
+
+## Blowing off the Dust
+
+I see that in my environment, two variables, `special_case_sort_time` and `trend_sort_time` are loaded. It's been a long time since I've created these data, so I have an unclear memory as to what these objects are. Usually I use `str`, `class` to understand they are. I also make use of `head` to quickly glance at the data usually if it is a `data.frame` (`glimpse` is also a cool function to summarise the data).
+
+```{r understand_vars}
+class(special_case_sort_time)
+str(special_case_sort_time)
+```
+
+`special_case_sort_time` is a list with three elements `10`, `100`, and `1000`. Each is a list containg `microbenchmark` objects for each special cases.
+
+## Attempt #1 at Visualization
+
+For a `microbenchmark` object, a `boxplot` method is available to allow us to easily compare different algorithms. `autoplot` is also available, but I opted with the boxplot. They are essentially the same thing except that autoplot shows the distribution of the data more clearly, which can be done with boxplot by adding another layer of jitter plot.
+
+With the built-in `boxplot.microbenchmark`, I can visualize the performance of each algorithm.
+
+```{r simple_boxplot}
+boxplot(
+  special_case_sort_time$`10`$sorted_backwards,
+  cex.axis = 0.75,
+  unit = "us",
+  main = "Performance on Already Sorted Sequence (Length 10)",
+  xlab = "Algorithm"
+)
+```
+
+However, using this is limited in a sense that I can only compare algorithms within the same type of sequence. Furthermore, I have contrived sequences with 5 special cases and 6 trends, each of which has 3 lengths. Plotting for all these cases requires repetetive copying and pasting of the code 33 times, which could bore not only the creator of these plots (me) and the reader. Plus, it would be hard to compare across the plots. To give myself more freedom to plot these boxes, I will first make some changes in how the data is stored.
+
+## Data Modification
+
+I want my final `data.frame` to have four columns: `expr`, `time`, `case`, `N`.
+
+- `expr`: name of the sorting algorithm
+- `time`: time in nanoseconds
+- `case`: name of the special case or trend
+- `N`: length of the sequence
+
+Since there are two objects which are `list`s of `microbenchmark` data (actually a `list` of `list`s of `microbenchmark` data), I created a function to modify both objects into the `data.frame`, and then combine them. 
+
+I wont get into the nitty-gritty of `clean_sorting_microbench` function, but I'll provide a quick summary of the function. 
+
+- each step is divided by a piping operator, `%>%`, available from the package `dplyr`
+- first step (`lapply`) involves changing each `microbenchmark` to a `data.frame`, adding a new column `case` to store the name of the cases/trends, and then combine all the cases within each number of sequence lengths
+- second step (`mapply`) adds a new column `N` to store the length of sequence.
+- third step (`do.call`) combines all `data.frame` from each sequences lengths.
+
+Of course, this complication can be avoided using for loops, but I like to make use of vectorized nature in `R` as well as avoid having to keep track of all the variables for each step. Also, piping these allows me to write the function in logical steps.
+
+
+```{r clean_data_function}
+clean_sorting_microbench <- function(mcb.list) {
+  mcb.list %>%
+  # for each case in microbench data, swith to data.frame & append a new column "case"
+  lapply(
+    # for each "length" element, bind all the cases data.frame
+    function(x) {
+      do.call(
+        function(...) rbind(..., make.row.names = FALSE, stringsAsFactors = FALSE),
+        mapply(
+          # add "case" column
+          function(mb, case) cbind(as.data.frame(mb), "case" = case),
+          mb = x, 
+          case = names(x),
+          SIMPLIFY = FALSE
+        )
+      )
+    }
+  ) %>%
+  # add "N" column
+  mapply(
+    function(a,b) cbind(a, "N" = b),
+    a = .,
+    b = names(.),
+    SIMPLIFY = FALSE
+  ) %>%
+  # bind all data.frame from separate lengths
+  do.call(
+    what = function(...) rbind(..., make.row.names = FALSE, stringsAsFactors = FALSE),
+    .
+  )
+}
+```
+
+```{r apply_clean_data}
+mydf <- rbind(
+  clean_sorting_microbench(special_case_sort_time),
+  clean_sorting_microbench(trend_sort_time)
+)
+
+head(mydf)
+```
+
+### Count Number of Rows
+
+**N = 10**
+
+```{r print_count1, echo = FALSE}
+mydf_table <- table(mydf[,c("case","expr", "N")])
+
+mydf_table[,,1] %>%
+  kable(label = "10") %>%
+  scroll_box(width = "750px", height = "250px")
+```
+
+**N = 100**
+
+```{r print_count2, echo = FALSE}
+mydf_table[,,2] %>%
+  kable(label = "10") %>%
+  scroll_box(width = "750px", height = "250px")
+```
+
+**N = 1000**
+
+```{r print_count3, echo = FALSE}
+mydf_table[,,3] %>%
+  kable(label = "10") %>%
+  scroll_box(width = "750px", height = "250px")
+```
+
+Well, it looks like this was a success. Now off to do some cool visualizations.
+
+## Attempt #2 at Visualization
+
+Now that I have a `data.frame` in a tidy form, I can use `ggplot2` package to various graphs. 
+
+```{r compare_sort, cache = TRUE, fig.height = 15, fig.width = 10, message = FALSE, echo = FALSE}
+plot1 <- ggplot(mydf) +
+  geom_boxplot(aes(x = expr, y = log(time, 10), col = case)) +
+  facet_grid(
+    rows = vars(case),
+    cols = vars(N),
+    labeller = labeller(
+      N = c("10" = "N = 10", "100" = "N = 100", "1000" = "N = 1000")
+    )) + 
+  guides(col = FALSE) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  xlab("Algorithm") +
+  ylab("Log base 10 of Time")
+
+ggsave(filename = "sort_comparison_gg1.png", plot = plot1, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+```
+
+I first wanted to compare the performance of each algorithm for each case. The following plot allows me to compare the algorithm performance for each case in each lengths. 
+
+[![Compare Performances of Each Algorithms within Cases](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg1.png)
+
+I already see some interesting trends. For each 10 fold increase in the length of the sequence, the average log-time duration for the sorting increases by 1 ~ 2. First off, the sorting can be divided into two kinds of "groups". First group is comprised of `bubble sort`, `insertion sort`, and `selection sort`. The average time complexity for these algorithms is $\Theta(n^2)$. In the second group are `quick sort`, `merge sort`, and `shell sort`. The average case for these algorithms is $\Theta(n log(n))$ (actually for shell sort it's $\Theta(n (log(n)^2)$... explains why this performs closer to $\Theta(n^2)$ group).
+
+In `N = 10`, the $\Theta(n^2)$ group generally outperforms $\Theta(n log(n))$ group. The two groups have similar performance in `N = 100`, and $\Theta(nlog(n))$ group far outperformes the other group in `N = 1000`.
+
+Some algorithms handle specific cases better than other. We can see that `bubble sort` consistently does better in all sequence lengths in `already_sorted` case and `extreme_out_of_place_high` case. This is expected since the algorithm stops as soon as no swap happens, and bubbles largest values to the top. However the algorithm falls off in all other cases and trends. 
+
+We can see that regardless of the trend, when the sequence is large enough, the algorithms of $\Theta(nlog(n))$ group perform consistently better than others.
+
+What I like about the boxplot is the simplicity as well as the information it gives, especially if many data points are involved. There is a phenomenon that only occurs in `one_off` case that does not occur in other cases, specifically at `N = 100` and `N = 1000`.  While most algorithm's log-time performance is concentrated around the box / Interquantile Range (IQR), `bubble sort`'s box shape is much clearer. `one_off` displaces a single value in a sorted sequence randomly. Because `bubble_sort` carries the larger value to the top by making a comparison with the next value in line and swapping at every comparison, it is really dependent on when the swap starts happening. My guess is that reliance on the randomness of where the value is displaced caused the variability. I designed the case such that all indices in a sequence has equal chance of being displaced, hence the time to sort the sequence should be uniformly distributed. Since the y-axis of this plot is plotted in log time, a boxplot with some trailing outliers below the lower tail is expected, which is exactly what the box in `N = 1000` looks like.
+
+```{r loguniform_ex, echo = FALSE, fig.height = 2, fig.width = 4}
+standardize <- function(x) (x - mean(x)) / sd(x)
+
+tmp <- 
+  gather(
+    data.frame(
+      "uniform" = standardize(runif(100, 0, 1)),
+      "log_uniform" = standardize(log(runif(100, 0, 1)))
+    ),
+    key = "dist",
+    value = "val"
+  )
+
+ggplot(tmp) + 
+  geom_boxplot(aes(y = val, fill = dist)) +
+  facet_grid(col = vars(dist), scales = "free_y", space = "free_y") +
+  guides(fill = FALSE) +
+  ggtitle("Demonstration of log-uniform and uniform distribution")
+
+```
+
+```{r compare_sort2, fig.height = 14, fig.width = 14, echo = FALSE, message = FALSE}
+# for each N, plot each case separated by algorithm
+plot2 <-  ggplot(mydf) +
+  geom_boxplot(aes(x = case, y = log(time, 10), fill = expr), outlier.size = 0.8) +
+  facet_grid(rows = vars(expr), cols = vars(N), labeller = labeller(N = c("10" = "N = 10", "100" = "N = 100", "1000" = "N = 1000")), scales = "free_x") +
+  guides(fill = FALSE) +
+  coord_flip() +
+  xlab(NULL)
+
+ggsave(filename = "sort_comparison_gg2.png", plot = plot2, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+
+# ggplot(filter(mydf, N == "100")) +
+#   geom_boxplot(aes(x = case, y = log(time), fill = expr)) +
+#   facet_grid(cols = vars(expr), rows = vars(N), labeller = labeller(N = c("100" = "N = 10"))) +
+#   guides(fill = FALSE) + 
+#   coord_flip()
+# 
+# ggplot(filter(mydf, N == "1000")) +
+#   geom_boxplot(aes(x = case, y = log(time), fill = expr)) +
+#   facet_grid(rows = vars(expr), cols = vars(N), labeller = labeller(N = c("1000" = "N = 10")), scales = "free_y") +
+#   guides(fill = FALSE)
+```
+
+Next plot compares the algorithmic performance in each case. Contrary to the last plot, the cases are "side-by-side", divided by the algorithm type.
+
+[![Compare Performances of Each Case within Algorithms](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg2.png)
+
+As `N` gets larger, `shell_sort`, `merge_sort`, and `quick_sort` outperforms the other algorithms, by order of from 10 up to 1000. $\Theta(n^2)$ group relatively performs well on the special cases than $\Theta(nlog(n))$ group.
+
+# Comparison of Means
+
+For my last trick, maybe comparing the means of each algorithm-case pair could help in visualizing the differences.
+
+Now in here I had two choices for the barplot. The duration increases by factor of ten when the length of sequence also increases by factors of ten. So it's a good idea to plot y axis on a log scale. I could either calculate the mean first and then log the means, or log-transform the values first and then calculate the log-mean. Turns out, the second method is essentially log of the geometric mean... cool! Anyhow, I think it makes greater sense the use the first approach to compare the means because I'm only really using `log` to enable visual comparison of the means. Furthermore, interpretation with arithmetic mean in this context after exponentiating seems easier than with geometric mean.
+
+```{r compare_means}
+grouped_means <- mydf %>%
+  group_by(N, case, expr) %>%
+    summarise(mu_time = mean(time)) %>% # arithmatic mean of time
+    .[with(., order(N, case,expr)),] %>% # order by N, case, then expr 
+    ungroup()
+```
+
+```{r compare_means_plot, fig.height = 18, fig.width = 10, message = FALSE, echo = FALSE}
+plot3 <- ggplot(grouped_means) +
+  geom_bar(aes(x = expr, y = mu_time, fill = N), stat = "identity", position = "dodge") +
+  facet_grid(rows = vars(case)) +
+  guides(fill = FALSE) + 
+  scale_y_log10() +
+  ggtitle("Comparison of Log of Mean Time (nanoseconds)")
+
+ggsave(filename = "sort_comparison_gg3.png", plot = plot3, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+```
+
+[![Comparison of Log of Mean Time (nanoseconds)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg3.png)
+
+As interesting as this plot really is, it's honestly hard to see the real differences in changes in duration of the sort. I am curious to see if plotting the differences between the lengths help. The duration grows multiplicatively, which means I'll be dividing to quantify the jump in the duration when the length of sequence is changed.
+
+```{r difference_df_making}
+grouped_means_10 <-
+  dplyr::filter(grouped_means, N == 10) %>%
+    dplyr::rename("mu_time_10" = mu_time) %>%
+    dplyr::select(-N)
+grouped_means_100 <- dplyr::filter(grouped_means, N == 100) %>%
+  dplyr::rename("mu_time_100" = mu_time) %>%
+    dplyr::select(-N)
+grouped_means_1000 <- dplyr::filter(grouped_means, N == 1000) %>%
+  dplyr::rename("mu_time_1000" = mu_time) %>%
+    dplyr::select(-N)
+
+grouped_means_diff <-
+  grouped_means_10 %>% 
+    full_join(grouped_means_100, by = c("case", "expr")) %>%
+    full_join(grouped_means_1000, by = c("case", "expr")) %>%
+    mutate(
+      diff_10_100 = mu_time_100 / mu_time_10,
+      diff_100_1000 = mu_time_1000 / mu_time_100,
+      diff_10_1000 = mu_time_1000 / mu_time_10
+    ) %>%
+    dplyr::select(case, expr, contains("diff")) %>%
+    gather(key = "N_compared", value = "time_diff", diff_10_100:diff_10_1000) %>%
+  mutate("N_compared" = factor(N_compared, c("diff_10_100", "diff_100_1000", "diff_10_1000")))
+```
+
+```{r difference_plot, echo = FALSE, fig.height = 18, fig.width = 10, message = FALSE}
+plot4 <- ggplot(grouped_means_diff) +
+  geom_bar(aes(x = expr, y = time_diff, fill = N_compared), position = "dodge", stat = "identity") +
+  facet_grid(rows = vars(case)) +
+  theme(legend.justification = "top") +
+  scale_y_log10() +
+  ggtitle("Differences in Time Complexity (nanoseconds)") +
+  xlab("Algorithm") +
+  ylab("Time Difference Factor")
+
+ggsave(filename = "sort_comparison_gg4.png", plot = plot4, path = "../../static/img/2019-04-05-sorting-comparison-pt-2")
+```
+
+[![Comparison of Log of Mean Time (nanoseconds)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png)](/img/2019-04-05-sorting-comparison-pt-2/sort_comparison_gg4.png)
+
+You can actually see here the time difference between varying lengths. Let's focus on the blue bar, which represents the jump from `N = 10` to `N = 1000`, and on the `trend`s. The duration increases by factors of almost 5000 (the plot is on the log scale) for `bubble_sort` and `insertion_sort`. `selection_sort` scales surprisingly well, comparably so to the other three best performing algorithms. The $\Theta(n log(n))$ groups scale well. According to the barplot, the time scales almost linearly with the length.
+
+For me, there's something soothing about looking at plots places side by side for comparison. I can kind of zone out while at the same time trying to figure out the pattern. I hoped I helped the readers realize the versatility of visualization, and the difference in information conveyed, even with the same data, just by making a few changes such as switching up the x-axis and y-axis, changing the grouping variable, or manipulating the numbers.
