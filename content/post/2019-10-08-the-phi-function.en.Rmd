@@ -1,0 +1,67 @@
+---
+title: The Phi Function
+author: John Lee
+date: '2019-10-08'
+slug: the-phi-function
+categories: []
+tags: []
+subtitle: ''
+---
+
+I frequently encounter the $\Phi$ and $\Phi^{-1}$ functions in statistical texts. For some reason, the notation always throws me off guard, and I have to spend a few minutes visualizing. This post draws a definitive link between the functions and corresponding graphs. This ought to help me save some time and build more solid understanding of the concepts that make use of this.
+
+The $\Phi$ function is simply cumulative distribution function, $F$, of a standard normal distribution.
+
+$$\Phi(z) = \int_{-\infty}^z\dfrac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\sigma)^2}{2\sigma^2}}dx$$
+
+It denotes the probability of a standard normal random variable taking a value smaller than or equal to the value $z$. In other words, the function returns the quantile of z. [Some sources](http://mathworld.wolfram.com/NormalDistributionFunction.html) may have slightly different definition to it, but the spirit remains the same.
+
+Depending on how you want to visualize it, the output of $\Phi$ can be visualized using p.d.f. and c.d.f.
+
+```{r initial, echo = FALSE}
+x <- seq(-5, 5, 0.01)
+y_pdf <- dnorm(x)
+y_cdf <- pnorm(x)
+```
+
+```{r draw_pdf, echo = FALSE}
+z <- 1.2
+
+plot(x = 1, type = "n", xlim = c(-5, 5), ylim = c(0,0.4), main = expression(paste(Phi(z), " on pdf")))
+polygon(c(x[x - z <= 1e-5], z), y = c(y_pdf[x - z <= 1e-5], 0), col = "red")
+lines(x, y_pdf, type = "l", lwd = 2)
+abline(v = z)
+arrows(x0 = -2, y0 = 0.3, x1 = -0.5, y1 = 0.24, lwd = 2)
+text(x = -2 + (-2 + 0.5)*0.3, y = 0.3 + (0.3-0.24)*0.3, labels = expression(Phi(z)))
+axis(side = 1, at = z, labels = "z", tick = TRUE)
+
+plot(x, y_cdf, type = "l", xlim = c(-5, 5), ylim = c(0, 1), main = expression(paste(Phi(z), " on cdf")), lwd = 2)
+abline(v = z)
+axis(side = 1, at = z, labels = "z", tick = TRUE)
+points(x = z, y = y_cdf[abs(x - z) < 0.001], pch = 21, bg = "red")
+arrows(x0 = 0, y0 = y_cdf[abs(x - z) < 0.001], x1 = z-0.1, y1 = y_cdf[abs(x - z) < 0.001], lwd = 2)
+text(x = -0.4, y = y_cdf[abs(x - z) < 0.001], labels = expression(Phi(z)))
+```
+
+The arrows point to the output of the function. On p.d.f., it is the area under the curve until the point $z$. On c.d.f., it is the point on the curve when $x = z$.
+
+The $\Phi$ function may be brought up in the hypothesis testing context. What should be remembered is that the domain of the function is that of a **standardized normal variable**. The output won't make sense if the input is from an arbitrary normal distribution. If you have a value that comes from a non-stanardized normal distribution (I don't know if that's an actual term), you'll have to standardize it first to find the quantile.
+
+If I have value of -20.5 from some population $p$ that assumes normal distribution where $\mu = -10$ and $\sigma^2 = 5^2$,
+$$F_p(-20.5) = \Phi\big(\frac{-20.5 - (-10)}{5}\big) = \Phi(-2.1)$$
+
+$\Phi^{-1}$ is no more complicated than its inverse. The notation itself doesn't necessarily come to me as second nature, as would mathematical notations like $+$, $\otimes$, and $\int$. So I like to translate the function into words. $\Phi^{-1}(q)$ is essentially *a standard normal variable in qth quantile*.
+
+```{r phi_inverse, echo = FALSE}
+q <- 0.33
+plot(x, y_cdf, lwd = 2, type = "l", main = expression(paste(Phi^-1, (q), " using cdf")))
+abline(v = qnorm(q))
+axis(side = 1, at = qnorm(q), labels = expression(paste(Phi^{-1}, (q))), tick = TRUE)
+points(x = qnorm(q), y = q, pch = 21, bg = "red")
+arrows(x0 = -1.9, y0 = q, x1 = qnorm(q) - 0.2, y1 = q, lwd = 2)
+text(x = -2.2, y = q, labels = "q")
+```
+
+That's all there is to it folks. $\Phi(z)$ accepts a value that is a standard normal random variable and spits out the corresponding quantile, while $\Phi^{-1}$ accepts a quantile, $q \in [0,1]$, and returns the corresponding z-value.
+
+This topic is by no means complicated, but by forcing myself to write about this trivial topic and create visuals definitely helps me become more familiar with these kinds of notations. Building this familiarity with statistical terms comes in handy especially when I'm trying to read through journals or textbooks fluently without the need to stop and think about what the letters mean. Now I can spare myself a few minutes from having to remember what $\Phi^{-1}$ means :).

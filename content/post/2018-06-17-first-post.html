@@ -30,20 +30,20 @@ summary(iris_lm)</code></pre>
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -1.18143 -0.30856 -0.03082  0.31355  1.01589 
+## -1.15417 -0.30771 -0.04347  0.29627  0.87021 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   4.23175    0.11943  35.434  &lt; 2e-16 ***
-## Petal.Length  0.49919    0.08618   5.792 5.96e-08 ***
-## Petal.Width  -0.23334    0.19251  -1.212    0.228    
+## (Intercept)   4.11962    0.10794  38.164  &lt; 2e-16 ***
+## Petal.Length  0.57798    0.07426   7.783 3.11e-12 ***
+## Petal.Width  -0.39197    0.17184  -2.281   0.0244 *  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.4096 on 117 degrees of freedom
-## Multiple R-squared:  0.7447, Adjusted R-squared:  0.7404 
-## F-statistic: 170.7 on 2 and 117 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>The corresponding equation for <code>iris_lm</code> model is <span class="math display">\[\hat{y}_i = 4.23 + 0.5x_{1i}  -0.23x_{2i}\]</span> Although all the coefficients show significance in terms of p-value, let’s create diagnostic plots to check if the model fits correctly.</p>
+## Residual standard error: 0.399 on 117 degrees of freedom
+## Multiple R-squared:  0.7746, Adjusted R-squared:  0.7707 
+## F-statistic:   201 on 2 and 117 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>The corresponding equation for <code>iris_lm</code> model is <span class="math display">\[\hat{y}_i = 4.12 + 0.58x_{1i}  -0.39x_{2i}\]</span> Although all the coefficients show significance in terms of p-value, let’s create diagnostic plots to check if the model fits correctly.</p>
 <pre class="r"><code>par(mfrow = c(2, 2))
 plot(iris_lm)</code></pre>
 <p><img src="/post/2018-06-17-first-post_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
@@ -63,15 +63,15 @@ plot(iris_lm_quad)</code></pre>
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -0.99043 -0.24766 -0.03761  0.22157  0.82690 
+## -1.02406 -0.21390  0.00723  0.23591  0.87644 
 ## 
 ## Coefficients:
 ##                                    Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)                         5.10858    0.26741  19.104  &lt; 2e-16
-## poly(Petal.Length, 2, raw = TRUE)1 -0.23246    0.29297  -0.793 0.429144
-## poly(Petal.Length, 2, raw = TRUE)2  0.10776    0.03024   3.564 0.000533
-## poly(Petal.Width, 2, raw = TRUE)1  -0.03862    0.58957  -0.066 0.947889
-## poly(Petal.Width, 2, raw = TRUE)2  -0.09989    0.16066  -0.622 0.535341
+## (Intercept)                         5.11499    0.25740  19.872  &lt; 2e-16
+## poly(Petal.Length, 2, raw = TRUE)1 -0.29319    0.28206  -1.039 0.300764
+## poly(Petal.Length, 2, raw = TRUE)2  0.10352    0.02726   3.797 0.000235
+## poly(Petal.Width, 2, raw = TRUE)1   0.31560    0.57731   0.547 0.585663
+## poly(Petal.Width, 2, raw = TRUE)2  -0.17454    0.15563  -1.122 0.264380
 ##                                       
 ## (Intercept)                        ***
 ## poly(Petal.Length, 2, raw = TRUE)1    
@@ -81,9 +81,9 @@ plot(iris_lm_quad)</code></pre>
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.3651 on 115 degrees of freedom
-## Multiple R-squared:  0.8006, Adjusted R-squared:  0.7937 
-## F-statistic: 115.4 on 4 and 115 DF,  p-value: &lt; 2.2e-16</code></pre>
+## Residual standard error: 0.3555 on 115 degrees of freedom
+## Multiple R-squared:  0.8241, Adjusted R-squared:  0.8179 
+## F-statistic: 134.7 on 4 and 115 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Judging from the summary, it is evident that the quadratic polynomial for <code>Petal.Width</code> is not very significant. Let’s remove that predictor and see how the model turns out.</p>
 <pre class="r"><code>iris_lm_quad &lt;- update(iris_lm_quad, Sepal.Length ~ poly(Petal.Length, 2, raw = TRUE) + Petal.Width)
 summary(iris_lm_quad)</code></pre>
@@ -94,14 +94,14 @@ summary(iris_lm_quad)</code></pre>
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -0.97391 -0.27949 -0.04329  0.21732  0.84691 
+## -0.99457 -0.22096 -0.00029  0.22785  0.87272 
 ## 
 ## Coefficients:
-##                                    Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)                         4.98030    0.16967  29.353  &lt; 2e-16
-## poly(Petal.Length, 2, raw = TRUE)1 -0.06818    0.12622  -0.540   0.5901
-## poly(Petal.Length, 2, raw = TRUE)2  0.09193    0.01625   5.657 1.13e-07
-## Petal.Width                        -0.38888    0.17336  -2.243   0.0268
+##                                     Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)                         4.897726   0.169687  28.863  &lt; 2e-16
+## poly(Petal.Length, 2, raw = TRUE)1 -0.009269   0.124526  -0.074   0.9408
+## poly(Petal.Length, 2, raw = TRUE)2  0.077184   0.013859   5.569 1.68e-07
+## Petal.Width                        -0.308480   0.154025  -2.003   0.0475
 ##                                       
 ## (Intercept)                        ***
 ## poly(Petal.Length, 2, raw = TRUE)1    
@@ -110,9 +110,9 @@ summary(iris_lm_quad)</code></pre>
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.3642 on 116 degrees of freedom
-## Multiple R-squared:  0.7999, Adjusted R-squared:  0.7948 
-## F-statistic: 154.6 on 3 and 116 DF,  p-value: &lt; 2.2e-16</code></pre>
+## Residual standard error: 0.3559 on 116 degrees of freedom
+## Multiple R-squared:  0.8221, Adjusted R-squared:  0.8175 
+## F-statistic: 178.7 on 3 and 116 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Now all the predictors are significant with the exception for the first order polynomial for <code>Petal.Length</code>. Nonetheless, I have to respect the hierarchy of higher order terms, so I’ll keep the coefficient.</p>
 <p>The summary suggests that the model is statistically significant, and has the R-squared value of roughly 0.8. I’ll use this model to predict the <code>Sepal.Length</code> with the test dataset created in the beginning of this post.</p>
 <pre class="r"><code>y &lt;- iris_test[,&quot;Sepal.Length&quot;]
@@ -120,5 +120,5 @@ y_hat &lt;- predict(iris_lm_quad, iris_test[,c(&quot;Petal.Length&quot;, &quot;P
 
 #calculate Root Mean Squared Error
 rmse &lt;- sqrt(sum((y - y_hat)^2)/length(y))</code></pre>
-<p>I used Root Mean Square Error to quantify the accuracy of the model, and it came out to be 0.352.</p>
+<p>I used Root Mean Square Error to quantify the accuracy of the model, and it came out to be 0.379.</p>
 <p>This marks the end of my first post. As I continue this blog, I hope to learn statistics and the models more in depth and become more adept at coming up with creative solutions for data analysis problems!</p>

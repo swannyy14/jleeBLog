@@ -1,0 +1,25 @@
+---
+title: The Phi Function
+author: John Lee
+date: '2019-10-08'
+slug: the-phi-function
+categories: []
+tags: []
+subtitle: ''
+---
+
+
+
+<p>I frequently encounter the <span class="math inline">\(\Phi\)</span> and <span class="math inline">\(\Phi^{-1}\)</span> functions in statistical texts. For some reason, the notation always throws me off guard, and I have to spend a few minutes visualizing. This post draws a definitive link between the functions and corresponding graphs. This ought to help me save some time and build more solid understanding of the concepts that make use of this.</p>
+<p>The <span class="math inline">\(\Phi\)</span> function is simply cumulative distribution function, <span class="math inline">\(F\)</span>, of a standard normal distribution.</p>
+<p><span class="math display">\[\Phi(z) = \int_{-\infty}^z\dfrac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\sigma)^2}{2\sigma^2}}dx\]</span></p>
+<p>It denotes the probability of a standard normal random variable taking a value smaller than or equal to the value <span class="math inline">\(z\)</span>. In other words, the function returns the quantile of z. <a href="http://mathworld.wolfram.com/NormalDistributionFunction.html">Some sources</a> may have slightly different definition to it, but the spirit remains the same.</p>
+<p>Depending on how you want to visualize it, the output of <span class="math inline">\(\Phi\)</span> can be visualized using p.d.f. and c.d.f.</p>
+<p><img src="/post/2019-10-08-the-phi-function.en_files/figure-html/draw_pdf-1.png" width="672" /><img src="/post/2019-10-08-the-phi-function.en_files/figure-html/draw_pdf-2.png" width="672" /></p>
+<p>The arrows point to the output of the function. On p.d.f., it is the area under the curve until the point <span class="math inline">\(z\)</span>. On c.d.f., it is the point on the curve when <span class="math inline">\(x = z\)</span>.</p>
+<p>The <span class="math inline">\(\Phi\)</span> function may be brought up in the hypothesis testing context. What should be remembered is that the domain of the function is that of a <strong>standardized normal variable</strong>. The output won’t make sense if the input is from an arbitrary normal distribution. If you have a value that comes from a non-stanardized normal distribution (I don’t know if that’s an actual term), you’ll have to standardize it first to find the quantile.</p>
+<p>If I have value of -20.5 from some population <span class="math inline">\(p\)</span> that assumes normal distribution where <span class="math inline">\(\mu = -10\)</span> and <span class="math inline">\(\sigma^2 = 5^2\)</span>, <span class="math display">\[F_p(-20.5) = \Phi\big(\frac{-20.5 - (-10)}{5}\big) = \Phi(-2.1)\]</span></p>
+<p><span class="math inline">\(\Phi^{-1}\)</span> is no more complicated than its inverse. The notation itself doesn’t necessarily come to me as second nature, as would mathematical notations like <span class="math inline">\(+\)</span>, <span class="math inline">\(\otimes\)</span>, and <span class="math inline">\(\int\)</span>. So I like to translate the function into words. <span class="math inline">\(\Phi^{-1}(q)\)</span> is essentially <em>a standard normal variable in qth quantile</em>.</p>
+<p><img src="/post/2019-10-08-the-phi-function.en_files/figure-html/phi_inverse-1.png" width="672" /></p>
+<p>That’s all there is to it folks. <span class="math inline">\(\Phi(z)\)</span> accepts a value that is a standard normal random variable and spits out the corresponding quantile, while <span class="math inline">\(\Phi^{-1}\)</span> accepts a quantile, <span class="math inline">\(q \in [0,1]\)</span>, and returns the corresponding z-value.</p>
+<p>This topic is by no means complicated, but by forcing myself to write about this trivial topic and create visuals definitely helps me become more familiar with these kinds of notations. Building this familiarity with statistical terms comes in handy especially when I’m trying to read through journals or textbooks fluently without the need to stop and think about what the letters mean. Now I can spare myself a few minutes from having to remember what <span class="math inline">\(\Phi^{-1}\)</span> means :).</p>
