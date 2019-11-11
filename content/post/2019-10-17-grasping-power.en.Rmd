@@ -1,7 +1,7 @@
 ---
 title: Grasping Power
 author: John Lee
-date: '2019-10-17'
+date: '2019-11-10'
 slug: grasping-power
 categories:
   - Statistics
@@ -17,8 +17,7 @@ library(tidyverse)
 library(gridExtra)
 ```
 
-
-I was reading a [paper on calculation of sample sizes](https://onlinelibrary.wiley.com/doi/abs/10.1002/9780471462422.eoct005), and I inevitably came across the topic of statistical power. Essentially, when you're designing on experiment, the sample size is an important factor to consider due to limiting resources. You want to have a sample size that is neither too small (which could result in high chance of failure to detect true differences) nor too big (potential waste of resources, albeit yielding better estimation). 
+I was reading a [paper on calculation of sample sizes](https://onlinelibrary.wiley.com/doi/abs/10.1002/9780471462422.eoct005), and I inevitably came across the topic of **statistical power**. Essentially, when you're designing on experiment, the sample size is an important factor to consider due to limiting resources. You want to have a sample size that is neither too small (which could result in high chance of failure to detect true differences) nor too big (potential waste of resources, albeit yielding better estimation). 
 
 It is useful to know the lowest sample size of a test that will detect real difference, if it exists, with a high probability. If I can provide a closed form solution for a statistical power, given the null and alternative hypothesis as well as $\alpha$ cutoff (Type I Error Rate), calculating the required sample size would be trivial (like actually trivial unlike the "trivial" proofs in abstract algebra texts). 
 
