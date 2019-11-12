@@ -13,6 +13,7 @@ subtitle: ''
 ---
 
 ```{r init, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(1236)
 library(tidyverse)
 library(gridExtra)
 ```

@@ -1,7 +1,7 @@
 ---
 title: Grasping Power
 author: John Lee
-date: '2019-10-17'
+date: '2019-11-10'
 slug: grasping-power
 categories:
   - Statistics
@@ -14,7 +14,7 @@ subtitle: ''
 
 
 
-<p>I was reading a <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/9780471462422.eoct005">paper on calculation of sample sizes</a>, and I inevitably came across the topic of statistical power. Essentially, when you’re designing on experiment, the sample size is an important factor to consider due to limiting resources. You want to have a sample size that is neither too small (which could result in high chance of failure to detect true differences) nor too big (potential waste of resources, albeit yielding better estimation).</p>
+<p>I was reading a <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/9780471462422.eoct005">paper on calculation of sample sizes</a>, and I inevitably came across the topic of <strong>statistical power</strong>. Essentially, when you’re designing on experiment, the sample size is an important factor to consider due to limiting resources. You want to have a sample size that is neither too small (which could result in high chance of failure to detect true differences) nor too big (potential waste of resources, albeit yielding better estimation).</p>
 <p>It is useful to know the lowest sample size of a test that will detect real difference, if it exists, with a high probability. If I can provide a closed form solution for a statistical power, given the null and alternative hypothesis as well as <span class="math inline">\(\alpha\)</span> cutoff (Type I Error Rate), calculating the required sample size would be trivial (like actually trivial unlike the “trivial” proofs in abstract algebra texts).</p>
 <p>In addition to learning more about power, this should be a good practice to think about the relationship between the null and alternative distributions, and understand the different types of errors.</p>
 <div id="definition" class="section level2">
@@ -49,7 +49,7 @@ subtitle: ''
 <!--
 <p style="text-align:center"><small>[Source](https://knowyourmeme.com/memes/its-over-9000)</small></p>
 -->
-<p>Calculating the power of a test is fairly simple once divided into steps. The power is calculated based on the significance threshold and the alternative curve. So I’ll first have to calculate the threshold, which is determined by the null distribution. Once the threshold is calculated, identify the overlap between the area of rejecting the null hypothsis and the area of the alternative distribution.</p>
+<p>Calculating the power of a test is fairly simple once divided into steps. Power is calculated based on the significance threshold and the alternative curve. So I’ll first have to calculate the threshold, which is determined by the null distribution. Once the threshold is calculated, I identify the overlap between the area of rejecting the null hypothsis and the area of the alternative distribution.</p>
 <ol style="list-style-type: decimal">
 <li>Identify null distribution and alternative distribution.</li>
 <li>Calculate threshold at significance level <span class="math inline">\(\alpha\)</span> under null distribution.</li>
@@ -57,7 +57,7 @@ subtitle: ''
 </ol>
 <div id="example-with-a-one-sample-proportion-study" class="section level3">
 <h3>Example with a One Sample Proportion Study</h3>
-<p>I will assume a one sample proportion test for equality. Suppose I want to study the proportion of people that like statistics. If I want to test that chances of liking or not liking are not equal, <span class="math inline">\(H_0: p_0 = 0.5\)</span> and <span class="math inline">\(H_1: p_0 \neq 0.5\)</span>. Let <span class="math inline">\(p_1\)</span> denote the desired effect size. This is the proportion of the population if <span class="math inline">\(H_0\)</span> were not true, and some other value than <span class="math inline">\(p_0\)</span> is the true proportion. Imagine that I asked <span class="math inline">\(N\)</span> people. <span class="math inline">\(n_1\)</span> answered yes and <span class="math inline">\(n_2\)</span> answered no.</p>
+<p>I will assume a one sample proportion test for equality. Suppose I want to study the proportion of people that like statistics. If I want to test that chances of liking or not liking are not equal, then <span class="math inline">\(H_0: p_0 = 0.5\)</span> and <span class="math inline">\(H_1: p_0 \neq 0.5\)</span>. Let <span class="math inline">\(p_1\)</span> denote the desired effect size. This is the proportion of the population if <span class="math inline">\(H_0\)</span> were not true, and some other value than <span class="math inline">\(p_0\)</span> is the true proportion. Imagine that I asked <span class="math inline">\(N\)</span> people. <span class="math inline">\(n_1\)</span> answered yes and <span class="math inline">\(n_2\)</span> answered no.</p>
 <p>Summary:</p>
 <p><span class="math display">\[H_0: p_0 = 0.5\]</span> <span class="math display">\[H_1: p_0 \neq 0.5\]</span> <span class="math display">\[p_1 = \text{desired effect size}\]</span></p>
 <p><span class="math display">\[\text{Sample Size} = N = n_1 + n_2\]</span></p>
@@ -77,7 +77,7 @@ subtitle: ''
 </div>
 <div id="calculate-cutoff-at-alpha" class="section level3">
 <h3>2. Calculate Cutoff at <span class="math inline">\(\alpha\)</span></h3>
-<p>Now, I want to find the cutoff to that will make the significance level equal to some prespecified <span class="math inline">\(\alpha\)</span>. Usually this is chosen to be 0.05.</p>
+<p>Now, I want to find the cutoff that make the significance level equal to some prespecified <span class="math inline">\(\alpha\)</span>. Usually this is chosen to be 0.05.</p>
 <p>To calculate this value, we first focus on the null curve, because this is where the significance level is applied.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/power_calc_plot_2-1.png" width="672" /></p>
 <p>We want to make the red area equal to <span class="math inline">\(\alpha\)</span>.</p>
@@ -90,7 +90,7 @@ subtitle: ''
 <p>Now that we know the appropriate cutoff for a test to be significant, we can use this to find the power of the test. We shift the focus from the null curve to the alternative curve.</p>
 <p>Power is area under the alternative curve <em>beyond</em> the cutoff, described by the yellow area and blue arrows.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/power_calc_plot_3-1.png" width="672" /></p>
-<p>All we have to do is calculate area under <span class="math inline">\(H_1\)</span> for x values smaller than <span class="math inline">\(p_0-\hat{\epsilon}\)</span> and <span class="math inline">\(p_0+\hat{\epsilon}\)</span>.</p>
+<p>All we have to do is calculate area under <span class="math inline">\(H_1\)</span> for x values smaller than <span class="math inline">\(p_0-\hat{\epsilon}\)</span> and bigger than <span class="math inline">\(p_0+\hat{\epsilon}\)</span>.</p>
 <p>I’ll try to derive a closed form formula by using <span class="math inline">\(\Phi\)</span>. Because the distribution of interest is from <span class="math inline">\(H_1\)</span> now, the mean and the standard deviation used to calculate the standardized z-score will be of the alternative hypothesis, which are <span class="math inline">\(p_1\)</span> and <span class="math inline">\(p_1(1-p_1)\)</span>.</p>
 <p><span class="math display">\[z_{std} = \dfrac{\Big(p_0\pm\frac{\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{n}} - p_1\Big)}{\sqrt{\frac{1}{n}p_1(1-p_1)}} = \dfrac{\sqrt{n}(p_0-p_1)\pm\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\]</span></p>
 <p>Then <span class="math display">\[1-\beta = \Phi\bigg(\dfrac{\sqrt{n}(p_0-p_1)-\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\bigg) + \\ \Bigg(1 - \Phi\bigg(\dfrac{\sqrt{n}(p_0-p_1)+ \Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\bigg)\Bigg)\]</span></p>
@@ -115,11 +115,11 @@ subtitle: ''
 <p>To calculate the powers per distance, I generated a sequence of <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span> with an interval of 0.001, generated all combinations of the two proportions, measured the distance, and calculated power with <span class="math inline">\(p_0\)</span>, <span class="math inline">\(p_1\)</span>, and for sample sizes <span class="math inline">\(N = 10, 50, 100, 120\)</span>.</p>
 <p>The data I created looks like this:</p>
 <pre><code>##           p0    p1 distance   power_10   power_50  power_100  power_120
-## 924562 0.487 0.926    0.439 0.94072227 1.00000000 1.00000000 1.00000000
-## 731752 0.484 0.733    0.249 0.33211541 0.96129276 0.99968043 0.99996119
-## 847004 0.851 0.848    0.003 0.05198269 0.05231017 0.05271969 0.05288354
-## 395761 0.157 0.397    0.240 0.53869183 0.97784696 0.99971749 0.99995500
-## 543130 0.673 0.544    0.129 0.15605304 0.49428260 0.77156042 0.83920449</code></pre>
+## 129063 0.192 0.130    0.062 0.04540139 0.16078902 0.32568632 0.39130334
+## 163070 0.233 0.164    0.069 0.05198483 0.17897345 0.35414586 0.42217874
+## 848274 0.123 0.850    0.727 0.99999822 1.00000000 1.00000000 1.00000000
+## 804463 0.268 0.806    0.538 0.98244496 1.00000000 1.00000000 1.00000000
+## 691980 0.672 0.693    0.021 0.04830646 0.05741613 0.06895799 0.07361936</code></pre>
 <p>Instead of plotting all combinations of <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span> at fixed intervals (0.001), I randomly sampled pairs and calculated power and distance due to large number of combinations. Although the graph will look like random data, the values are in fact deterministic, and the visible trend remains.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvp1-1.png" width="672" /></p>
 <p>Hmm… It seems although the distance seems to have some influence on power, other factors also influence it. What is distance not capturing? For my previous example, I considered <span class="math inline">\(p_0=0.5,p_1=0.6\)</span> and <span class="math inline">\(p_0=0.3,p_1=0.2\)</span>. Could the values themselves matter?</p>
