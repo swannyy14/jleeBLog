@@ -12,6 +12,7 @@ subtitle: ''
 ---
 
 <script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
 <p>Load all the datasets that I’ve saved from the previous benchmarks</p>
@@ -32,52 +33,52 @@ load(&quot;../../static/Dataset/sort_comparisons&quot;)</code></pre>
 <pre><code>## List of 3
 ##  $ 10  :List of 5
 ##   ..$ already_sorted           :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 4 5 4 4 6 4 6 1 2 ...
-##   .. ..$ time: num [1:600] 13971 33227 90242 24543 21145 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 5 3 5 5 3 3 1 2 3 ...
+##   .. ..$ time: num [1:600] 33700 39700 42700 35500 33100 27700 24500 5000 4300 24500 ...
 ##   ..$ sorted_backwards         :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 2 1 1 3 4 4 5 5 2 ...
-##   .. ..$ time: num [1:600] 97039 51352 86844 129510 118939 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 6 3 3 5 3 6 2 3 1 ...
+##   .. ..$ time: num [1:600] 40300 31300 28700 23800 36400 23900 26900 14800 24700 19100 ...
 ##   ..$ one_off                  :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 5 4 5 6 3 2 4 1 3 ...
-##   .. ..$ time: num [1:600] 28319 197475 75516 198230 117806 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 4 1 4 3 4 1 5 2 2 ...
+##   .. ..$ time: num [1:600] 33700 14500 14500 10500 41500 48200 11600 39300 5200 3300 ...
 ##   ..$ extreme_out_of_place_low :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 4 1 2 3 2 2 1 6 6 3 ...
-##   .. ..$ time: num [1:600] 44933 19635 16237 92508 12839 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 3 2 1 4 1 1 1 6 6 ...
+##   .. ..$ time: num [1:600] 8300 41900 5400 8000 55900 5900 5200 5100 29800 23000 ...
 ##   ..$ extreme_out_of_place_high:Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 3 1 1 3 2 4 1 5 2 ...
-##   .. ..$ time: num [1:600] 147257 162360 63434 215977 288094 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 2 2 1 3 6 5 4 1 2 ...
+##   .. ..$ time: num [1:600] 31200 7400 4600 14000 40600 24300 38300 42100 11700 5300 ...
 ##  $ 100 :List of 5
 ##   ..$ already_sorted           :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 5 5 6 1 3 2 4 2 2 ...
-##   .. ..$ time: num [1:600] 145747 2551692 2275303 1363068 118939 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 5 6 1 5 2 5 4 1 5 ...
+##   .. ..$ time: num [1:600] 436900 429600 261000 17800 436400 ...
 ##   ..$ sorted_backwards         :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 3 3 4 3 2 1 4 4 5 ...
-##   .. ..$ time: num [1:600] 1909427 871457 818973 808024 1584329 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 6 1 2 3 3 6 4 3 4 ...
+##   .. ..$ time: num [1:600] 435700 338400 1188800 738900 338500 ...
 ##   ..$ one_off                  :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 3 4 5 5 1 2 3 2 4 2 ...
-##   .. ..$ time: num [1:600] 1341168 382490 1571492 1991739 491233 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 2 1 6 6 4 1 3 5 4 ...
+##   .. ..$ time: num [1:600] 299900 17200 453400 271900 254700 ...
 ##   ..$ extreme_out_of_place_low :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 5 2 1 5 2 6 6 4 2 ...
-##   .. ..$ time: num [1:600] 91375 1048542 85711 87977 1030418 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 1 1 3 5 6 1 6 1 4 ...
+##   .. ..$ time: num [1:600] 42000 36500 35100 380900 452900 ...
 ##   ..$ extreme_out_of_place_high:Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 3 1 6 1 4 4 5 2 5 3 ...
-##   .. ..$ time: num [1:600] 961699 1365333 908837 1357026 430065 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 1 2 4 1 5 6 3 3 5 ...
+##   .. ..$ time: num [1:600] 543000 531600 34200 215700 566700 ...
 ##  $ 1000:List of 5
 ##   ..$ already_sorted           :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 3 2 6 6 6 5 1 2 2 2 ...
-##   .. ..$ time: num [1:600] 86637040 388909 5429612 5423571 5173612 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 2 2 4 2 5 2 6 3 2 ...
+##   .. ..$ time: num [1:600] 2452400 139500 130900 2030600 124700 ...
 ##   ..$ sorted_backwards         :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 1 2 4 3 4 4 5 4 1 ...
-##   .. ..$ time: num [1:600] 1.26e+07 2.71e+08 2.07e+08 2.78e+07 7.64e+07 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 6 5 3 6 1 4 2 1 3 ...
+##   .. ..$ time: num [1:600] 12642700 12158900 5212600 28345800 12321900 ...
 ##   ..$ one_off                  :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 4 6 4 4 2 1 6 2 4 ...
-##   .. ..$ time: num [1:600] 12720319 6264821 5382414 6171180 6074898 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 5 1 1 4 6 5 2 1 4 ...
+##   .. ..$ time: num [1:600] 2514700 5104000 24877600 48341600 2061700 ...
 ##   ..$ extreme_out_of_place_low :Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 1 4 3 6 3 4 1 4 1 3 ...
-##   .. ..$ time: num [1:600] 800472 6164007 66034723 56511003 70829244 ...
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 6 3 4 4 3 4 3 1 4 2 ...
+##   .. ..$ time: num [1:600] 22904100 29557000 2351300 2337200 29914000 ...
 ##   ..$ extreme_out_of_place_high:Classes &#39;microbenchmark&#39; and &#39;data.frame&#39;:   600 obs. of  2 variables:
-##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 5 2 4 4 4 2 2 3 1 6 ...
-##   .. ..$ time: num [1:600] 12088627 718537 6023924 6023169 5997493 ...</code></pre>
+##   .. ..$ expr: Factor w/ 6 levels &quot;bubble_sort&quot;,..: 2 5 4 3 1 4 2 3 5 1 ...
+##   .. ..$ time: num [1:600] 274300 5001200 2414700 29871300 49442600 ...</code></pre>
 <p><code>special_case_sort_time</code> is a list with three elements <code>10</code>, <code>100</code>, and <code>1000</code>. Each is a list containg <code>microbenchmark</code> objects for each special cases.</p>
 </div>
 <div id="attempt-1-at-visualization" class="section level2">
@@ -149,13 +150,13 @@ load(&quot;../../static/Dataset/sort_comparisons&quot;)</code></pre>
 )
 
 head(mydf)</code></pre>
-<pre><code>##          expr  time           case  N
-## 1 bubble_sort 13971 already_sorted 10
-## 2  shell_sort 33227 already_sorted 10
-## 3  merge_sort 90242 already_sorted 10
-## 4  shell_sort 24543 already_sorted 10
-## 5  shell_sort 21145 already_sorted 10
-## 6  quick_sort 73629 already_sorted 10</code></pre>
+<pre><code>##             expr  time           case  N
+## 1     quick_sort 33700 already_sorted 10
+## 2     merge_sort 39700 already_sorted 10
+## 3 selection_sort 42700 already_sorted 10
+## 4     merge_sort 35500 already_sorted 10
+## 5     merge_sort 33100 already_sorted 10
+## 6 selection_sort 27700 already_sorted 10</code></pre>
 <div id="count-number-of-rows" class="section level3">
 <h3>Count Number of Rows</h3>
 <p><strong>N = 10</strong></p>
@@ -211,30 +212,7 @@ already_sorted
 </tr>
 <tr>
 <td style="text-align:left;">
-sorted_backwards
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-one_off
+extreme_out_of_place_high
 </td>
 <td style="text-align:right;">
 100
@@ -280,7 +258,53 @@ extreme_out_of_place_low
 </tr>
 <tr>
 <td style="text-align:left;">
-extreme_out_of_place_high
+flat_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+left_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+one_off
 </td>
 <td style="text-align:right;">
 100
@@ -349,7 +373,30 @@ right_skew_trend
 </tr>
 <tr>
 <td style="text-align:left;">
-left_skew_trend
+sine_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sorted_backwards
 </td>
 <td style="text-align:right;">
 100
@@ -373,52 +420,6 @@ left_skew_trend
 <tr>
 <td style="text-align:left;">
 symmetrical_trend
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-flat_trend
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-sine_trend
 </td>
 <td style="text-align:right;">
 100
@@ -495,30 +496,7 @@ already_sorted
 </tr>
 <tr>
 <td style="text-align:left;">
-sorted_backwards
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-one_off
+extreme_out_of_place_high
 </td>
 <td style="text-align:right;">
 100
@@ -564,7 +542,53 @@ extreme_out_of_place_low
 </tr>
 <tr>
 <td style="text-align:left;">
-extreme_out_of_place_high
+flat_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+left_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+one_off
 </td>
 <td style="text-align:right;">
 100
@@ -633,7 +657,30 @@ right_skew_trend
 </tr>
 <tr>
 <td style="text-align:left;">
-left_skew_trend
+sine_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sorted_backwards
 </td>
 <td style="text-align:right;">
 100
@@ -657,52 +704,6 @@ left_skew_trend
 <tr>
 <td style="text-align:left;">
 symmetrical_trend
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-flat_trend
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-sine_trend
 </td>
 <td style="text-align:right;">
 100
@@ -779,30 +780,7 @@ already_sorted
 </tr>
 <tr>
 <td style="text-align:left;">
-sorted_backwards
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-one_off
+extreme_out_of_place_high
 </td>
 <td style="text-align:right;">
 100
@@ -848,7 +826,53 @@ extreme_out_of_place_low
 </tr>
 <tr>
 <td style="text-align:left;">
-extreme_out_of_place_high
+flat_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+left_skew_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+one_off
 </td>
 <td style="text-align:right;">
 100
@@ -917,7 +941,30 @@ right_skew_trend
 </tr>
 <tr>
 <td style="text-align:left;">
-left_skew_trend
+sine_trend
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sorted_backwards
 </td>
 <td style="text-align:right;">
 100
@@ -941,52 +988,6 @@ left_skew_trend
 <tr>
 <td style="text-align:left;">
 symmetrical_trend
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-flat_trend
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-sine_trend
 </td>
 <td style="text-align:right;">
 100
@@ -1037,6 +1038,7 @@ sine_trend
     summarise(mu_time = mean(time)) %&gt;% # arithmatic mean of time
     .[with(., order(N, case,expr)),] %&gt;% # order by N, case, then expr 
     ungroup()</code></pre>
+<pre><code>## `summarise()` regrouping output by &#39;N&#39;, &#39;case&#39; (override with `.groups` argument)</code></pre>
 <p><a href="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg3.png"><img src="/img/2019-08-04-sorting-comparison-pt-2/sort_comparison_gg3.png" alt="Comparison of Log of Mean Time (nanoseconds)" /></a></p>
 <p>As interesting as this plot really is, it’s honestly hard to see the real differences in changes in duration of the sort. I am curious to see if plotting the differences between the lengths help. The duration grows multiplicatively, which means I’ll be dividing to quantify the jump in the duration when the length of sequence is changed.</p>
 <pre class="r"><code>grouped_means_10 &lt;-

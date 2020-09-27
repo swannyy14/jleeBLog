@@ -17,7 +17,7 @@ draft: false
 <p>Consider a bivariate normal distribution (non degenerate) with random variables X and Y, where <span class="math inline">\(\mu_X, \mu_Y = 0\)</span>, <span class="math inline">\(\sigma_X, \sigma_Y = 1\)</span>, and <span class="math inline">\(\sigma_{XY}\)</span> takes different values.</p>
 <pre class="r"><code>library(MASS)
 library(mixtools)</code></pre>
-<pre><code>## mixtools package, version 1.1.0, Released 2017-03-10
+<pre><code>## mixtools package, version 1.2.0, Released 2020-02-05
 ## This package is based upon work supported by the National Science Foundation under Grant No. SES-0518772.</code></pre>
 <pre class="r"><code>set.seed(1234)
 gen_binormplot &lt;- function(N, mu_vec, Sigma, ...){ #function that creates a plot for randomly generated bivariate normal distribution
@@ -53,7 +53,8 @@ for (plt in 1:length(cov_xy)){
   Sig &lt;- matrix(c(var_x, cov_xy[plt], cov_xy[plt], var_y), nrow = 2, byrow = TRUE)
   gen_binormplot(N, c(mu_x, mu_y), Sig, xlim = c(-3, 3), ylim = c(-3, 3))
 }</code></pre>
-<p><img src="/post/2018-07-16-covariance-matrix_files/figure-html/unnamed-chunk-1-1.png" width="672" /><img src="/post/2018-07-16-covariance-matrix_files/figure-html/unnamed-chunk-1-2.png" width="672" /> The ellipses show the region in which a certain portion of the points from a bivariate normal distribution falls into. The outermost ellipse contains 95% of the points. Also, the ellipses allows us to see more easily the general trend that the two random variables have. As you can see, <em>negative covariance is associated with inverse relationship between X and Y</em>, and <em>positive covariance is associated with direct relationship</em>. Furthermore, the ellipses tend to get wider as the absolute value of covariance decreases. This is because lower absoluate value of covariance is regarded as the two random variables having a “weaker” relationship. In fact, the ellipses in the case where <span class="math inline">\(\sigma_{XY} = 0\)</span> would be a perfect circle had the plot size been square (which is also ascribed to the variance of X and Y being equal).</p>
+<p><img src="/post/2018-07-16-covariance-matrix_files/figure-html/unnamed-chunk-1-1.png" width="672" /><img src="/post/2018-07-16-covariance-matrix_files/figure-html/unnamed-chunk-1-2.png" width="672" />
+The ellipses show the region in which a certain portion of the points from a bivariate normal distribution falls into. The outermost ellipse contains 95% of the points. Also, the ellipses allows us to see more easily the general trend that the two random variables have. As you can see, <em>negative covariance is associated with inverse relationship between X and Y</em>, and <em>positive covariance is associated with direct relationship</em>. Furthermore, the ellipses tend to get wider as the absolute value of covariance decreases. This is because lower absoluate value of covariance is regarded as the two random variables having a “weaker” relationship. In fact, the ellipses in the case where <span class="math inline">\(\sigma_{XY} = 0\)</span> would be a perfect circle had the plot size been square (which is also ascribed to the variance of X and Y being equal).</p>
 <p><strong>Mathematical Definition</strong>: <span class="math inline">\(Cov[X, Y] = E\big[(X-E[X])(Y-E[Y])\big]\)</span></p>
 <p>In words, the covariance of random variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is an expectation of the product of the two variables’ deviation from the mean.</p>
 <p>From this definition, I like to understand the previously seen trend (where negative covariance is related to inverse relationship and positive covariance is related to direct relationship) by thinking of extreme cases. If X and Y were to have inverse (linear) relationship, where increasing X is related to decreasing Y, then higher values of X, which is above its mean will be paired with lower values of Y, which is below the mean. Then the deviation for X and Y will have opposite signs. So the expected value of their product would be negative. Similar reason applies for positive covariance.</p>
@@ -69,7 +70,8 @@ plot(x = x, y = y, xlim = c(-1.5, 1.5), ylim = c(-0.5, 1.5), xlab = &quot;X&quot
 <p><img src="/post/2018-07-16-covariance-matrix_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <p>Clearly the relationship between the two random variables is not linear, thus covariance alone would not be a good method to measure the strength of relationship between the two random variables.</p>
 <p>The strength of linear relationship between two random variables is hard to determine by solely looking at the covariance because the value depends on how the random variables are scaled. Hence the covariance is often normalized into Pearson correlation coefficient (<span class="math inline">\(\rho\)</span>), which ranges from -1 to 1, so that it is easier to interpret.</p>
-<p>The definition of correlation coefficient is given by: <span class="math display">\[\rho_{_{XY}} = \dfrac{Cov[X,Y]}{Sd[X]Sd[Y]} = \dfrac{\sigma_{_{XY}}}{\sigma_{_X}\sigma_{_Y}}\]</span> where <span class="math inline">\(Sd\)</span> is standard deviation. This is easier to interpret than covariance because it is scaled down to in between -1 and 1. Closer absolute value to 1 means that the linear relationship is stronger.</p>
+<p>The definition of correlation coefficient is given by: <span class="math display">\[\rho_{_{XY}} = \dfrac{Cov[X,Y]}{Sd[X]Sd[Y]} = \dfrac{\sigma_{_{XY}}}{\sigma_{_X}\sigma_{_Y}}\]</span>
+where <span class="math inline">\(Sd\)</span> is standard deviation. This is easier to interpret than covariance because it is scaled down to in between -1 and 1. Closer absolute value to 1 means that the linear relationship is stronger.</p>
 <p><strong>Properties of covariance</strong></p>
 <p><span class="math inline">\(Cov[X, a] = 0\)</span></p>
 <p>where a is a constant. In words covariance between a random variable and a constant is 0.</p>
@@ -103,10 +105,17 @@ plot(10*bivnorm[,1], bivnorm[,2], xlim = c(10, 90), ylim = c(1, 9), xlab = &#39;
 <p><span class="math inline">\(\Sigma_\textbf{X} = \begin{pmatrix} \sigma_{11} &amp; \sigma_{12} &amp; \cdots &amp; \sigma_{1N} \\ \sigma_{21} &amp; \sigma_{22} &amp; \cdots &amp; \sigma_{2N} \\ \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\ \sigma_{N1} &amp; \sigma_{N2} &amp; \cdots &amp; \sigma_{NN} \end{pmatrix}\)</span></p>
 <p>Applying definition of covariance, the <span class="math inline">\(i^{th}\)</span> row and <span class="math inline">\(j^{th}\)</span> column is <span class="math inline">\(\Sigma_{ij} = E\big[(X_i-E[X_i])(X_j-E[X_j])\big]\)</span>.</p>
 <p><strong>The following are some properties of <span class="math inline">\(\text{ } \Sigma\)</span> :</strong></p>
-<p>The <span class="math inline">\(i^{th}\)</span> diagonal entry is a variance of an <span class="math inline">\(i^{th}\)</span> random varible.</p>
-<p><span class="math inline">\(\Sigma_\textbf{X}\)</span> is a symmetric matrix due to the third property of covariance listed above.</p>
-<p><span class="math inline">\(\Sigma_\textbf{X}\)</span> is positive semi-definite. In other words, for <span class="math inline">\(\text{ } \textbf{v} \in \mathbb{R}^N\)</span>, <span class="math display">\[\textbf{v}^T \Sigma_\textbf{X} \textbf{v} \geq 0\]</span> I’ll provide a simple proof as practice:</p>
-<p><span class="math display">\[\textbf{v}^T \Sigma_\textbf{X} \textbf{v} = \textbf{v}^TE\big[(\textbf{X}-E[\textbf{X}])(\textbf{X}-E[\textbf{X}])^T\big]\textbf{v} \]</span> <span class="math display">\[= E\big[\textbf{v}^T(\textbf{X}-E[\textbf{X}])(\textbf{X}-E[\textbf{X}])^T\textbf{v}\big] \]</span> <span class="math display">\[= E\big[\textbf{v}^T (\textbf{X}-E[\textbf{X}])(\textbf{v}^T(\textbf{X}-E[\textbf{X}]))^T\big] \]</span> <span class="math display">\[= E\big[ \big( \textbf{v}^T(\textbf{X}-E[\textbf{X}]) \big)^2 \big] \geq 0 \text{, } \forall \text{ } \textbf{v} \in \mathbb{R}^N\]</span> <em>Note: In the case that <span class="math inline">\(\exists \text{ } \textbf{v} \in \mathbb{R}^N \text{ s.t. } \textbf{v}^T\Sigma\vec{v} = 0\)</span>, there is a component in a random vector <span class="math inline">\(X\)</span> that can be expressed through linear combination of other components </em></p>
+<p>The <span class="math inline">\(i^{th}\)</span> diagonal entry is a variance of an <span class="math inline">\(i^{th}\)</span> random varible.
+f
+<span class="math inline">\(\Sigma_\textbf{X}\)</span> is a symmetric matrix due to the third property of covariance listed above.</p>
+<p><span class="math inline">\(\Sigma_\textbf{X}\)</span> is positive semi-definite. In other words, for <span class="math inline">\(\text{ } \textbf{v} \in \mathbb{R}^N\)</span>,
+<span class="math display">\[\textbf{v}^T \Sigma_\textbf{X} \textbf{v} \geq 0\]</span>
+I’ll provide a simple proof as practice:</p>
+<p><span class="math display">\[\textbf{v}^T \Sigma_\textbf{X} \textbf{v} = \textbf{v}^TE\big[(\textbf{X}-E[\textbf{X}])(\textbf{X}-E[\textbf{X}])^T\big]\textbf{v} \]</span>
+<span class="math display">\[= E\big[\textbf{v}^T(\textbf{X}-E[\textbf{X}])(\textbf{X}-E[\textbf{X}])^T\textbf{v}\big] \]</span>
+<span class="math display">\[= E\big[\textbf{v}^T (\textbf{X}-E[\textbf{X}])(\textbf{v}^T(\textbf{X}-E[\textbf{X}]))^T\big] \]</span>
+<span class="math display">\[= E\big[ \big( \textbf{v}^T(\textbf{X}-E[\textbf{X}]) \big)^2 \big] \geq 0 \text{, } \forall \text{ } \textbf{v} \in \mathbb{R}^N\]</span>
+<em>Note: In the case that <span class="math inline">\(\exists \text{ } \textbf{v} \in \mathbb{R}^N \text{ s.t. } \textbf{v}^T\Sigma\vec{v} = 0\)</span>, there is a component in a random vector <span class="math inline">\(X\)</span> that can be expressed through linear combination of other components </em></p>
 <p><span class="math inline">\(\Sigma_{A\textbf{X}+b} = A\Sigma_\textbf{X}A^T\)</span></p>
 <p>Correlation matrix, (denote as <span class="math inline">\(\vec{\rho}\)</span>) whose <span class="math inline">\(i^{th}\)</span> row and <span class="math inline">\(j^{th}\)</span> column expresses the correlation coefficient between the respective random variables, can be obtained from the variance-covariance matrix.</p>
 <p>We know that <span class="math inline">\(\vec{\rho}_{ij} = \dfrac{Cov(X_i, X_j)}{\sqrt{Var(X_i)Var(X_j)}}\)</span> and the diagnonal entries of <span class="math inline">\(\text{ } \Sigma \text{ }\)</span> are variances. Hence, <span class="math inline">\(\vec{\rho} = \big(diag(\Sigma)\big)^{-\frac{1}{2}} \Sigma \big(diag(\Sigma)\big)^{-\frac{1}{2}}\)</span>, where <span class="math inline">\(diag(\Sigma)\)</span> is a diagonal matrix whose diagonal entries are diagonal entries of <span class="math inline">\(\Sigma\)</span> and other entries 0.</p>
@@ -116,20 +125,20 @@ plot(10*bivnorm[,1], bivnorm[,2], xlim = c(10, 90), ylim = c(1, 9), xlab = &#39;
 <p><span class="math inline">\(V = \dfrac{1}{N-1} \textbf{D}^T_c\textbf{D}_c\)</span></p>
 <p>Example using <code>attitude</code> dataset:</p>
 <pre class="r"><code>summary(attitude)</code></pre>
-<pre><code>##      rating        complaints     privileges       learning    
-##  Min.   :40.00   Min.   :37.0   Min.   :30.00   Min.   :34.00  
-##  1st Qu.:58.75   1st Qu.:58.5   1st Qu.:45.00   1st Qu.:47.00  
-##  Median :65.50   Median :65.0   Median :51.50   Median :56.50  
-##  Mean   :64.63   Mean   :66.6   Mean   :53.13   Mean   :56.37  
-##  3rd Qu.:71.75   3rd Qu.:77.0   3rd Qu.:62.50   3rd Qu.:66.75  
-##  Max.   :85.00   Max.   :90.0   Max.   :83.00   Max.   :75.00  
-##      raises         critical        advance     
-##  Min.   :43.00   Min.   :49.00   Min.   :25.00  
-##  1st Qu.:58.25   1st Qu.:69.25   1st Qu.:35.00  
-##  Median :63.50   Median :77.50   Median :41.00  
-##  Mean   :64.63   Mean   :74.77   Mean   :42.93  
-##  3rd Qu.:71.00   3rd Qu.:80.00   3rd Qu.:47.75  
-##  Max.   :88.00   Max.   :92.00   Max.   :72.00</code></pre>
+<pre><code>##      rating        complaints     privileges       learning         raises     
+##  Min.   :40.00   Min.   :37.0   Min.   :30.00   Min.   :34.00   Min.   :43.00  
+##  1st Qu.:58.75   1st Qu.:58.5   1st Qu.:45.00   1st Qu.:47.00   1st Qu.:58.25  
+##  Median :65.50   Median :65.0   Median :51.50   Median :56.50   Median :63.50  
+##  Mean   :64.63   Mean   :66.6   Mean   :53.13   Mean   :56.37   Mean   :64.63  
+##  3rd Qu.:71.75   3rd Qu.:77.0   3rd Qu.:62.50   3rd Qu.:66.75   3rd Qu.:71.00  
+##  Max.   :85.00   Max.   :90.0   Max.   :83.00   Max.   :75.00   Max.   :88.00  
+##     critical        advance     
+##  Min.   :49.00   Min.   :25.00  
+##  1st Qu.:69.25   1st Qu.:35.00  
+##  Median :77.50   Median :41.00  
+##  Mean   :74.77   Mean   :42.93  
+##  3rd Qu.:80.00   3rd Qu.:47.75  
+##  Max.   :92.00   Max.   :72.00</code></pre>
 <pre class="r"><code>att_c &lt;- sapply(attitude, function(x){x-mean(x)})
 cov_att_manual &lt;- 1/(nrow(att_c) - 1) * (t(att_c) %*% att_c)
 cov_att &lt;- cov(attitude)

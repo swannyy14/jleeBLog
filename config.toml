@@ -7,7 +7,7 @@ metaDataFormat = "yaml"
 pygmentsStyle = "trac"
 pygmentsUseClasses = true
 pygmentsCodeFences = true
-pygmentsCodefencesGuessSyntax = false #true
+pygmentsCodefencesGuessSyntax = false # true
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 #pygmentsUseClassic = true
 pygmentOptions = "linenos=inline"
@@ -17,15 +17,20 @@ pygmentOptions = "linenos=inline"
 [Params]
   homeTitle = "Casual Inference" # Set a different text for the header on the home page
   subtitle = "A blog significantly on statistics"
-  logo = "img/linreg.png"
-  favicon = "img/linreg.ico"
+  mainSections = ["post","posts"]
+  logo = "img/linreg.png" # Expecting square dimensions
+  favicon = "img/linreg.png"
   dateFormat = "January 2, 2006"
   commit = false
-  rss = false
+  rss = true
   comments = true
   readingTime = true
-  useHLJS = true
-  socialShare = false
+  wordCount = true
+#  useHLJS = true
+#  socialShare = true
+#  delayDisqus = true
+  showRelatedPosts = true
+#  hideAuthor = true
 #  gcse = "012345678901234567890:abcdefghijk" # Get your code from google.com/cse. Make sure to go to "Look and Feel" and change Layout to "Full Width" and Theme to "Classic"
 
 #[[Params.bigimg]]
@@ -41,29 +46,34 @@ pygmentOptions = "linenos=inline"
 #  desc = "Hexagon"
 
 [Author]
-  name = "John SooHwan Lee"
-  website = "yourwebsite.com"
+  name = "John Lee"
+  website = "www.casualinf.com"
   email = "theghks2@gmail.com"
-  facebook = "johnswanlee"
-  #googleplus = "+username" # or xxxxxxxxxxxxxxxxxxxxx
-  github = "swannyy14"
-  #gitlab = "username"
-  #bitbucket = "username"
-  #twitter = "username"
-  #reddit = "username"
-  #linkedin = "username"
-  #xing = "username"
-  #stackoverflow = "users/XXXXXXX/username"
-  #snapchat = "username"
-  #instagram = "username"
-  #youtube = "user/username" # or channel/channelname
-  #soundcloud = "username"
-  #spotify = "username"
-  #bandcamp = "username"
-  #itchio = "username"
-  #vk = "username"
-  #paypal = "username"
-  #telegram = "username"
+#  facebook = "username"
+#  github = "username"
+#  gitlab = "username"
+#  bitbucket = "username"
+#  twitter = "username"
+#  reddit = "username"
+#  linkedin = "username"
+#  xing = "username"
+#  stackoverflow = "users/XXXXXXX/username"
+#  snapchat = "username"
+#  instagram = "username"
+#  youtube = "user/username" # or channel/channelname
+#  soundcloud = "username"
+#  spotify = "username"
+#  bandcamp = "username"
+#  itchio = "username"
+#  vk = "username"
+#  paypal = "username"
+#  telegram = "username"
+#  500px = "username"
+#  codepen = "username"
+#  mastodon = "url"
+#  kaggle = "username"
+#  weibo = "username"
+#  slack = "username"
 
 [[menu.main]]
     name = "Blog"
@@ -73,7 +83,30 @@ pygmentOptions = "linenos=inline"
 [[menu.main]]
     name = "About"
     url = "page/about/"
-    weight = 2
+    weight = 3
+
+#[[menu.main]]
+#    identifier = "samples"
+#    name = "Samples"
+#    weight = 2
+
+#[[menu.main]]
+#    parent = "samples"
+#    name = "Big Image Sample"
+#    url = "post/2017-03-07-bigimg-sample"
+#    weight = 1
+
+#[[menu.main]]
+#    parent = "samples"
+#    name = "Math Sample"
+#    url = "post/2017-03-05-math-sample"
+#    weight = 2
+
+#[[menu.main]]
+#    parent = "samples"
+#    name = "Code Sample"
+#    url = "post/2016-03-08-code-sample"
+#    weight = 3
 
 [[menu.main]]
     name = "Tags"

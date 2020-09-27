@@ -144,7 +144,7 @@ Applying definition of covariance, the $i^{th}$ row and $j^{th}$ column is $\Sig
 **The following are some properties of $\text{ } \Sigma$ :**
 
 The $i^{th}$ diagonal entry is a variance of an $i^{th}$ random varible. 
-
+f
 $\Sigma_\textbf{X}$ is a symmetric matrix due to the third property of covariance listed above.
 
 $\Sigma_\textbf{X}$ is positive semi-definite. In other words, for $\text{ } \textbf{v} \in \mathbb{R}^N$,

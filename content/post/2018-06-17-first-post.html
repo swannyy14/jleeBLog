@@ -12,8 +12,7 @@ subtitle: ''
 
 <p>This is the first blog post of my life! I will be using this blog to post about anything that I want to share in statistics. For starter, I will run a linear regression with the <code>iris</code> dataset.</p>
 <pre class="r"><code>names(iris)</code></pre>
-<pre><code>## [1] &quot;Sepal.Length&quot; &quot;Sepal.Width&quot;  &quot;Petal.Length&quot; &quot;Petal.Width&quot; 
-## [5] &quot;Species&quot;</code></pre>
+<pre><code>## [1] &quot;Sepal.Length&quot; &quot;Sepal.Width&quot;  &quot;Petal.Length&quot; &quot;Petal.Width&quot;  &quot;Species&quot;</code></pre>
 <p>Let’s predict <code>Sepal.Length</code> with <code>Petal.Length</code> and <code>Petal.Width</code>.</p>
 <pre class="r"><code>#separate into training and testing sets
 set.seed(1234)
@@ -43,12 +42,15 @@ summary(iris_lm)</code></pre>
 ## Residual standard error: 0.399 on 117 degrees of freedom
 ## Multiple R-squared:  0.7746, Adjusted R-squared:  0.7707 
 ## F-statistic:   201 on 2 and 117 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>The corresponding equation for <code>iris_lm</code> model is <span class="math display">\[\hat{y}_i = 4.12 + 0.58x_{1i}  -0.39x_{2i}\]</span> Although all the coefficients show significance in terms of p-value, let’s create diagnostic plots to check if the model fits correctly.</p>
+<p>The corresponding equation for <code>iris_lm</code> model is
+<span class="math display">\[\hat{y}_i = 4.12 + 0.58x_{1i}  -0.39x_{2i}\]</span>
+Although all the coefficients show significance in terms of p-value, let’s create diagnostic plots to check if the model fits correctly.</p>
 <pre class="r"><code>par(mfrow = c(2, 2))
 plot(iris_lm)</code></pre>
 <p><img src="/post/2018-06-17-first-post_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <p>There seems to be a nonlinear trend in the <code>Residuals vs Fitted</code> diagnostic plot. This suggests that the true model may not be linear. As a result, I will include a quadratic term for the predictors.</p>
-<p>The resulting quadratic model will take the form of <span class="math display">\[\hat{y}_i = \hat{\beta}_0 + \hat{\beta}_{11}x_{1i} + \hat{\beta}_{12}x_{1i}^2 + \hat{\beta}_{21}x_{2i} + \hat{\beta}_{22}x_{2i}^2\]</span></p>
+<p>The resulting quadratic model will take the form of
+<span class="math display">\[\hat{y}_i = \hat{\beta}_0 + \hat{\beta}_{11}x_{1i} + \hat{\beta}_{12}x_{1i}^2 + \hat{\beta}_{21}x_{2i} + \hat{\beta}_{22}x_{2i}^2\]</span></p>
 <pre class="r"><code>iris_lm_quad &lt;- lm(Sepal.Length ~ poly(Petal.Length, 2, raw = TRUE) + poly(Petal.Width, 2, raw = TRUE),
                    data = iris_train)
 par(mfrow = c(2, 2))
@@ -66,18 +68,12 @@ plot(iris_lm_quad)</code></pre>
 ## -1.02406 -0.21390  0.00723  0.23591  0.87644 
 ## 
 ## Coefficients:
-##                                    Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)                         5.11499    0.25740  19.872  &lt; 2e-16
-## poly(Petal.Length, 2, raw = TRUE)1 -0.29319    0.28206  -1.039 0.300764
-## poly(Petal.Length, 2, raw = TRUE)2  0.10352    0.02726   3.797 0.000235
-## poly(Petal.Width, 2, raw = TRUE)1   0.31560    0.57731   0.547 0.585663
-## poly(Petal.Width, 2, raw = TRUE)2  -0.17454    0.15563  -1.122 0.264380
-##                                       
-## (Intercept)                        ***
-## poly(Petal.Length, 2, raw = TRUE)1    
-## poly(Petal.Length, 2, raw = TRUE)2 ***
-## poly(Petal.Width, 2, raw = TRUE)1     
-## poly(Petal.Width, 2, raw = TRUE)2     
+##                                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                         5.11499    0.25740  19.872  &lt; 2e-16 ***
+## poly(Petal.Length, 2, raw = TRUE)1 -0.29319    0.28206  -1.039 0.300764    
+## poly(Petal.Length, 2, raw = TRUE)2  0.10352    0.02726   3.797 0.000235 ***
+## poly(Petal.Width, 2, raw = TRUE)1   0.31560    0.57731   0.547 0.585663    
+## poly(Petal.Width, 2, raw = TRUE)2  -0.17454    0.15563  -1.122 0.264380    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -97,16 +93,11 @@ summary(iris_lm_quad)</code></pre>
 ## -0.99457 -0.22096 -0.00029  0.22785  0.87272 
 ## 
 ## Coefficients:
-##                                     Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)                         4.897726   0.169687  28.863  &lt; 2e-16
-## poly(Petal.Length, 2, raw = TRUE)1 -0.009269   0.124526  -0.074   0.9408
-## poly(Petal.Length, 2, raw = TRUE)2  0.077184   0.013859   5.569 1.68e-07
-## Petal.Width                        -0.308480   0.154025  -2.003   0.0475
-##                                       
-## (Intercept)                        ***
-## poly(Petal.Length, 2, raw = TRUE)1    
-## poly(Petal.Length, 2, raw = TRUE)2 ***
-## Petal.Width                        *  
+##                                     Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                         4.897726   0.169687  28.863  &lt; 2e-16 ***
+## poly(Petal.Length, 2, raw = TRUE)1 -0.009269   0.124526  -0.074   0.9408    
+## poly(Petal.Length, 2, raw = TRUE)2  0.077184   0.013859   5.569 1.68e-07 ***
+## Petal.Width                        -0.308480   0.154025  -2.003   0.0475 *  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 

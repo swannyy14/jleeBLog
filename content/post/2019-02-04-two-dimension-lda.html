@@ -12,10 +12,13 @@ subtitle: ''
 ---
 
 <script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
 <p>LDA, Linear Discriminant Analysis, is a classification method and a dimension reducion technique. I’ll focus more on classification. LDA calculates a <em>linear discriminant function</em> (which arises from assuming Gaussian distribution) for each class, and chooses a class that maximizes such function. The linear <em>discriminant function</em> therefore dictates a linear decision boundary for choosing a class. The decision boundary should be linear in the feature space. Discriminant analysis itself isn’t inherently linear. LDA is just a special case of discriminant analysis that arises from the assumption that all the classes share the same covariance matrix.</p>
-<p>Discriminant function of class <span class="math inline">\(k\)</span>: <span class="math display">\[\delta(x) = x^T \Sigma^{-1}\mu_k-\frac{1}{2}\mu_k^T\Sigma^{-1}\mu_k + log(\pi_k)\]</span> where</p>
+<p>Discriminant function of class <span class="math inline">\(k\)</span>:
+<span class="math display">\[\delta(x) = x^T \Sigma^{-1}\mu_k-\frac{1}{2}\mu_k^T\Sigma^{-1}\mu_k + log(\pi_k)\]</span>
+where</p>
 <ul>
 <li><p><span class="math inline">\(\mu_k\)</span> = mean for class k</p></li>
 <li><p><span class="math inline">\(\Sigma\)</span> = pooled sample mean</p></li>
@@ -183,17 +186,17 @@ test_scores %&gt;%
   kable(&#39;html&#39;, escape = FALSE) %&gt;%
   kable_styling(full_width = FALSE) %&gt;%
   scroll_box(height = &quot;300px&quot;)</code></pre>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:300px; ">
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; ">
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
-<th style="text-align:left;">
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
 A_score
 </th>
-<th style="text-align:left;">
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
 B_score
 </th>
-<th style="text-align:left;">
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
 Prediction
 </th>
 </tr>

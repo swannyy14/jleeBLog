@@ -20,9 +20,11 @@ subtitle: ''
 <div id="definition" class="section level2">
 <h2>Definition</h2>
 <p><strong>Statistical power quantifies the ability of a test to reject the null hypothesis when the alternative is actually true</strong>. More power means that you have higher probability of detecting a difference <em>when there is a difference in the underlying population</em>. <span class="math display">\[Power = P(\text{Reject }H_0 | H_1\text{ True})\]</span></p>
-<p>Let’s compare this to the <em>significance level</em>. <span class="math display">\[\text{Significance Level} = P(\text{Reject }H_0 | H_0\text{ True})\]</span></p>
+<p>Let’s compare this to the <em>significance level</em>.
+<span class="math display">\[\text{Significance Level} = P(\text{Reject }H_0 | H_0\text{ True})\]</span></p>
 <p><strong>p-value</strong> of a test is compared to this value to determine if the result is statistically significant.</p>
-<p>Power is also called a <strong>true positive rate</strong>, the rate at which the true positive phenomenon is detected. A complement to this would be <strong>false negative rate</strong> (Type II Error Rate), a rate at which the true positive phenomenon is not detected.</p>
+<p>Power is also called a <strong>true positive rate</strong>, the rate at which the true positive phenomenon is detected.
+A complement to this would be <strong>false negative rate</strong> (Type II Error Rate), a rate at which the true positive phenomenon is not detected.</p>
 <p>In statistics, the convention is to denote the false negative rate as <span class="math inline">\(\beta\)</span>. Following this, the power is denoted as <span class="math inline">\(1-\beta\)</span></p>
 <p>Significance level is a true positive rate. It is the rate at which a test detects a positive phenomenon when there is none present. Think about <a href="https://en.wikipedia.org/wiki/The_Boy_Who_Cried_Wolf"><em>The Boy Who Cried Wolf</em></a>, who kept falsely alerting the villagers of a wolf’s presence although the wolf was nowhere to be seen. That is a false positive call. The null hypothesis assumes that there is no wolf to begin with, but the test could still cry out “Wooooolf!”. The rate at which the test makes this error is usually denoted <span class="math inline">\(\alpha\)</span> in statistics.</p>
 <p>You can see that the difference between the two values lies in the underlying distribution.</p>
@@ -45,7 +47,7 @@ subtitle: ''
 </div>
 <div id="power-calculation" class="section level2">
 <h2>Power Calculation</h2>
-<p><a href = "https://knowyourmeme.com/memes/its-over-9000"><img src="/img/itsover9000.jpg", alt="Goku's Power", height=50%, width=50%></a></p>
+<p><a href = "https://knowyourmeme.com/memes/its-over-9000">&lt;img src=“/img/itsover9000.jpg”, alt=“Goku’s Power”, height=50%, width=50%&gt;</a></p>
 <!--
 <p style="text-align:center"><small>[Source](https://knowyourmeme.com/memes/its-over-9000)</small></p>
 -->
@@ -57,9 +59,14 @@ subtitle: ''
 </ol>
 <div id="example-with-a-one-sample-proportion-study" class="section level3">
 <h3>Example with a One Sample Proportion Study</h3>
-<p>I will assume a one sample proportion test for equality. Suppose I want to study the proportion of people that like statistics. If I want to test that chances of liking or not liking are not equal, then <span class="math inline">\(H_0: p_0 = 0.5\)</span> and <span class="math inline">\(H_1: p_0 \neq 0.5\)</span>. Let <span class="math inline">\(p_1\)</span> denote the desired effect size. This is the proportion of the population if <span class="math inline">\(H_0\)</span> were not true, and some other value than <span class="math inline">\(p_0\)</span> is the true proportion. Imagine that I asked <span class="math inline">\(N\)</span> people. <span class="math inline">\(n_1\)</span> answered yes and <span class="math inline">\(n_2\)</span> answered no.</p>
+<p>I will assume a one sample proportion test for equality. Suppose I want to study the proportion of people that like statistics.
+If I want to test that chances of liking or not liking are not equal, then <span class="math inline">\(H_0: p_0 = 0.5\)</span> and <span class="math inline">\(H_1: p_0 \neq 0.5\)</span>.
+Let <span class="math inline">\(p_1\)</span> denote the desired effect size. This is the proportion of the population if <span class="math inline">\(H_0\)</span> were not true, and some other value than <span class="math inline">\(p_0\)</span> is the true proportion.
+Imagine that I asked <span class="math inline">\(N\)</span> people. <span class="math inline">\(n_1\)</span> answered yes and <span class="math inline">\(n_2\)</span> answered no.</p>
 <p>Summary:</p>
-<p><span class="math display">\[H_0: p_0 = 0.5\]</span> <span class="math display">\[H_1: p_0 \neq 0.5\]</span> <span class="math display">\[p_1 = \text{desired effect size}\]</span></p>
+<p><span class="math display">\[H_0: p_0 = 0.5\]</span>
+<span class="math display">\[H_1: p_0 \neq 0.5\]</span>
+<span class="math display">\[p_1 = \text{desired effect size}\]</span></p>
 <p><span class="math display">\[\text{Sample Size} = N = n_1 + n_2\]</span></p>
 <p><span class="math display">\[\hat{p} = \frac{n_1}{N}\]</span></p>
 <p>Because the hypotheses test for equality, the test will be a two-tailed test.</p>
@@ -71,7 +78,8 @@ subtitle: ''
 <p><span class="math display">\[\sigma_0^2 = \frac{1}{N}p_0(1-p_0)\]</span></p>
 <p>because the result is sampled from bernoulli distribution (response is either yes or no) with probability of success being <span class="math inline">\(p_0\)</span>, and averaged by the number of samples.</p>
 <p>hence <span class="math display">\[\hat{p}_0 \sim N(p_0, \frac{1}{N}p_0(1-p_0))\]</span></p>
-<p>Similarly, <strong>under alternative hypothesis</strong>, <span class="math display">\[\hat{p}_1 \sim N(p_0, \frac{1}{N}p_1(1-p_1))\]</span></p>
+<p>Similarly, <strong>under alternative hypothesis</strong>,
+<span class="math display">\[\hat{p}_1 \sim N(p_0, \frac{1}{N}p_1(1-p_1))\]</span></p>
 <p>The null curve is colored in black and the alternative curve is colored in blue.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/power_calc_plot_1-1.png" width="672" /></p>
 </div>
@@ -82,8 +90,11 @@ subtitle: ''
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/power_calc_plot_2-1.png" width="672" /></p>
 <p>We want to make the red area equal to <span class="math inline">\(\alpha\)</span>.</p>
 <p>Let <span class="math inline">\(\hat{\epsilon} = |\hat{p} - p|\)</span>. Then we want to find <span class="math inline">\(\hat{\epsilon}\)</span> such that <span class="math inline">\(2\Phi\Big(\dfrac{((p_0-\hat{\epsilon}) - p_0)\sqrt{n}}{\sqrt{p_0(1-p_0)}}\Big) = \alpha\)</span>, where <span class="math inline">\(\Phi\)</span> is a c.d.f. of a standard normal distribution.</p>
-<p><span class="math display">\[2\Phi\Big(\dfrac{-\hat{\epsilon}\sqrt{n}}{\sqrt{p_0(1-p_0)}}\Big) = \alpha\]</span> <span class="math display">\[\Rightarrow\hat{\epsilon} = \dfrac{\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{n}}\]</span> Then the lower tail and upper tail cutoff, <span class="math inline">\(p_{c^-}\)</span> and <span class="math inline">\(p_{c^+}\)</span> respectively, are:</p>
-<p><span class="math display">\[p_{c^-} = p_0 - \hat{\epsilon}\]</span> <span class="math display">\[p_{c^+} = p_0 + \hat{\epsilon}\]</span></p>
+<p><span class="math display">\[2\Phi\Big(\dfrac{-\hat{\epsilon}\sqrt{n}}{\sqrt{p_0(1-p_0)}}\Big) = \alpha\]</span>
+<span class="math display">\[\Rightarrow\hat{\epsilon} = \dfrac{\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{n}}\]</span>
+Then the lower tail and upper tail cutoff, <span class="math inline">\(p_{c^-}\)</span> and <span class="math inline">\(p_{c^+}\)</span> respectively, are:</p>
+<p><span class="math display">\[p_{c^-} = p_0 - \hat{\epsilon}\]</span>
+<span class="math display">\[p_{c^+} = p_0 + \hat{\epsilon}\]</span></p>
 </div>
 <div id="calculate-area-under-h_1-curve-beyond-alpha-cutoff" class="section level3">
 <h3>3. Calculate Area Under <span class="math inline">\(H_1\)</span> Curve Beyond <span class="math inline">\(\alpha\)</span> Cutoff</h3>
@@ -93,7 +104,8 @@ subtitle: ''
 <p>All we have to do is calculate area under <span class="math inline">\(H_1\)</span> for x values smaller than <span class="math inline">\(p_0-\hat{\epsilon}\)</span> and bigger than <span class="math inline">\(p_0+\hat{\epsilon}\)</span>.</p>
 <p>I’ll try to derive a closed form formula by using <span class="math inline">\(\Phi\)</span>. Because the distribution of interest is from <span class="math inline">\(H_1\)</span> now, the mean and the standard deviation used to calculate the standardized z-score will be of the alternative hypothesis, which are <span class="math inline">\(p_1\)</span> and <span class="math inline">\(p_1(1-p_1)\)</span>.</p>
 <p><span class="math display">\[z_{std} = \dfrac{\Big(p_0\pm\frac{\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{n}} - p_1\Big)}{\sqrt{\frac{1}{n}p_1(1-p_1)}} = \dfrac{\sqrt{n}(p_0-p_1)\pm\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\]</span></p>
-<p>Then <span class="math display">\[1-\beta = \Phi\bigg(\dfrac{\sqrt{n}(p_0-p_1)-\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\bigg) + \\ \Bigg(1 - \Phi\bigg(\dfrac{\sqrt{n}(p_0-p_1)+ \Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\bigg)\Bigg)\]</span></p>
+<p>Then
+<span class="math display">\[1-\beta = \Phi\bigg(\dfrac{\sqrt{n}(p_0-p_1)-\Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\bigg) + \\ \Bigg(1 - \Phi\bigg(\dfrac{\sqrt{n}(p_0-p_1)+ \Phi^{-1}(\frac{\alpha}{2})\sqrt{p_0(1-p_0)}}{\sqrt{p_1(1-p_1)}}\bigg)\Bigg)\]</span></p>
 <p>The formula may seem a little complicated, but the values inside <span class="math inline">\(\Phi\)</span> just a result of unstandardizing the standardized cutoff value to the scale null distribution, then standardizing it from the scale of the alternative distribution.</p>
 <p>There you have it. This is a way to calculating the power.</p>
 </div>
@@ -103,7 +115,8 @@ subtitle: ''
 <p>I’d also like to see the behavior of the power function with respect to sample size, <span class="math inline">\(n\)</span>, and the magnitude of difference between <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span>.</p>
 <div id="against-sample-size" class="section level3">
 <h3>Against Sample Size</h3>
-<p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvn-1.png" width="672" /> As you can see here, at varying values of <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span>, the power increases monotonically with the sample size. Eventually, when the sample size is big enough, the power to detect change will be close enough to one.</p>
+<p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvn-1.png" width="672" />
+As you can see here, at varying values of <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span>, the power increases monotonically with the sample size. Eventually, when the sample size is big enough, the power to detect change will be close enough to one.</p>
 <p>This has its own problem though.</p>
 <p>Imagine that the true <span class="math inline">\(p\)</span> for a test is 0.55, and you want to test for a null hypothesis <span class="math inline">\(p_0 = 0.5\)</span>. Let’s see how power behaves with respect to the sample size.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvn2-1.png" width="672" /></p>
@@ -111,15 +124,17 @@ subtitle: ''
 </div>
 <div id="against-distance-between-p_0-and-p_1" class="section level3">
 <h3>Against Distance Between <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span></h3>
-<p>Let’s see how the distance between hypothesis affect power. For distance, I calculated the absolute value of difference between <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span>. For example, <span class="math inline">\(p_0 = 0.5\)</span> and <span class="math inline">\(p_1 = 0.6\)</span> has the same distance as <span class="math inline">\(p_0 = 0.3\)</span> and <span class="math inline">\(p_1 = 0.2\)</span>.</p>
+<p>Let’s see how the distance between hypothesis affect power.
+For distance, I calculated the absolute value of difference between <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span>.
+For example, <span class="math inline">\(p_0 = 0.5\)</span> and <span class="math inline">\(p_1 = 0.6\)</span> has the same distance as <span class="math inline">\(p_0 = 0.3\)</span> and <span class="math inline">\(p_1 = 0.2\)</span>.</p>
 <p>To calculate the powers per distance, I generated a sequence of <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span> with an interval of 0.001, generated all combinations of the two proportions, measured the distance, and calculated power with <span class="math inline">\(p_0\)</span>, <span class="math inline">\(p_1\)</span>, and for sample sizes <span class="math inline">\(N = 10, 50, 100, 120\)</span>.</p>
 <p>The data I created looks like this:</p>
-<pre><code>##           p0    p1 distance   power_10   power_50  power_100  power_120
-## 129063 0.192 0.130    0.062 0.04540139 0.16078902 0.32568632 0.39130334
-## 163070 0.233 0.164    0.069 0.05198483 0.17897345 0.35414586 0.42217874
-## 848274 0.123 0.850    0.727 0.99999822 1.00000000 1.00000000 1.00000000
-## 804463 0.268 0.806    0.538 0.98244496 1.00000000 1.00000000 1.00000000
-## 691980 0.672 0.693    0.021 0.04830646 0.05741613 0.06895799 0.07361936</code></pre>
+<pre><code>##           p0    p1 distance   power_10  power_50 power_100 power_120
+## 242434 0.676 0.243    0.433 0.85403065 0.9999997 1.0000000 1.0000000
+## 721038 0.759 0.722    0.037 0.07020518 0.1060772 0.1514675 0.1696854
+## 533940 0.474 0.535    0.061 0.06699970 0.1385977 0.2306389 0.2673210
+## 727341 0.069 0.729    0.660 0.99982690 1.0000000 1.0000000 1.0000000
+## 333947 0.281 0.335    0.054 0.07912712 0.1488668 0.2363192 0.2707668</code></pre>
 <p>Instead of plotting all combinations of <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span> at fixed intervals (0.001), I randomly sampled pairs and calculated power and distance due to large number of combinations. Although the graph will look like random data, the values are in fact deterministic, and the visible trend remains.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvp1-1.png" width="672" /></p>
 <p>Hmm… It seems although the distance seems to have some influence on power, other factors also influence it. What is distance not capturing? For my previous example, I considered <span class="math inline">\(p_0=0.5,p_1=0.6\)</span> and <span class="math inline">\(p_0=0.3,p_1=0.2\)</span>. Could the values themselves matter?</p>
@@ -127,9 +142,12 @@ subtitle: ''
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/ratio_dist-1.png" width="672" /></p>
 <p>Using raw ratio won’t show much information if I do a linear mapping between color intensity and ratio since I won’t see much change in the ratio (especially since I sampled the points from the whole data).</p>
 <p>If I apply log transformation, the distribution should look better.</p>
-<p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/ratio_log-1.png" width="672" /> Let’s try mapping colors to these values.</p>
+<p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/ratio_log-1.png" width="672" />
+Let’s try mapping colors to these values.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvp2-1.png" width="672" /></p>
-<p>We can <em>kind of</em> see a trend here. It looks like larger absolute value of negative log-ratios is related to lower power when the distance is small. Upon quick inspection of the data, those values near 0 in power were those were the <span class="math inline">\(p_1\)</span> were close to 0 or 1. It would be hard to capture those differences if that were the case in real life. The plot still seems overwhelmed by the “whiteness”, and the colors aren’t easily interpretable.</p>
+<p>We can <em>kind of</em> see a trend here. It looks like larger absolute value of negative log-ratios is related to lower power when the distance is small.
+Upon quick inspection of the data, those values near 0 in power were those were the <span class="math inline">\(p_1\)</span> were close to 0 or 1. It would be hard to capture those differences if that were the case in real life.
+The plot still seems overwhelmed by the “whiteness”, and the colors aren’t easily interpretable.</p>
 <p>This time, I colored the data points depending on how close the point’s <span class="math inline">\(p_0\)</span> is to the center, 0.5.</p>
 <p><img src="/post/2019-10-17-grasping-power.en_files/figure-html/pvp3-1.png" width="672" /></p>
 <p>The trend seems to change before and after the distance between two hypothesis go over 0.25. When the distance is below the 0.25 cutoff, the deviation of <span class="math inline">\(p_0\)</span> from 0.5 can either make the power increase or decrease. However, after that cutoff, the deviation seems to always increase the power.</p>
