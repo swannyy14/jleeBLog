@@ -130,11 +130,7 @@ text(x = 4.0, y = 0.6, labels = expression(sigma), col = "pink", cex = 2)
 
 ## Power Calculation
 
-<a href = "https://knowyourmeme.com/memes/its-over-9000"><img src="/img/itsover9000.jpg", alt="Goku's Power", height=50%, width=50%></a>
-
-<!--
-<p style="text-align:center"><small>[Source](https://knowyourmeme.com/memes/its-over-9000)</small></p>
--->
+[![Goku's Power](/img/itsover9000.jpg){height=50%, width=50%}](https://knowyourmeme.com/memes/its-over-9000)
 
 Calculating the power of a test is fairly simple once divided into steps. Power is calculated based on the significance threshold and the alternative curve. So I'll first have to calculate the threshold, which is determined by the null distribution. Once the threshold is calculated, I identify the overlap between the area of rejecting the null hypothsis and the area of the alternative distribution.
 
