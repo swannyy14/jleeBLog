@@ -20,6 +20,6 @@ The app is very simple: you can just choose a Subject, Course Number, and (optio
 
 <iframe height="1800" width="100%" frameborder="no" src="https://swannyy.shinyapps.io/gpa_explore/"> </iframe>
 
-If you are interested in source code for the shiny app, it is available in [my github page](https://github.com/johnswanlee/UIUC-GPA-Exploration-Shiny-App).
+If you are interested in source code for the shiny app, it is available in [my github page](https://github.com/johnswanlee/UIUC-GPA-Exploration-Shiny-App), and the app itself is published [here](https://swannyy.shinyapps.io/gpa_explore/)
 
 Have fun!
