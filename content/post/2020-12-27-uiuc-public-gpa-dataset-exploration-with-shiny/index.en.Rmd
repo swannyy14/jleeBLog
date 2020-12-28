@@ -1,0 +1,25 @@
+---
+title: UIUC Public GPA Dataset Exploration with Shiny
+author: John Lee
+date: '2020-12-28'
+slug: []
+categories:
+  - coding
+tags:
+  - coding
+  - visualization
+type: ''
+subtitle: ''
+image: ''
+runtime: shiny
+---
+
+Last year, I thought it would be a good idea to dig through the GPA data set available from [here](https://github.com/wadefagen/datasets/tree/master/gpa). I started building a Shiny app that lets the user explore certain aspects of the data. Now, it's almost been a year and I haven't got the chance and the will to work on it until now. I made it really simple so that I can quickly move on to other topics instead of dragging this on for another year with an unfinished product. 
+
+The app is very simple: you can just choose a Subject, Course Number, and (optionally) Instructors to compare, and the app will display two graphs. One compares average GPA for each class and another compares the % of A's received for that course. From these graphs, you'll be able to compare each instructor's difficulty as well as change in difficulty over time.
+
+<iframe height="1800" width="100%" frameborder="no" src="https://swannyy.shinyapps.io/gpa_explore/"> </iframe>
+
+If you are interested in source code for the shiny app, it is available in [my github page](https://github.com/johnswanlee/UIUC-GPA-Exploration-Shiny-App).
+
+Have fun!
