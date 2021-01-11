@@ -1,0 +1,372 @@
+---
+title: Linear Regression on Coffee Rating Data
+author: John Lee
+date: '2021-01-07'
+slug: []
+categories:
+  - machine learning
+  - Statistics
+tags:
+  - linear regression
+  - regression
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+
+<p>While I am reading <a href="https://web.stanford.edu/~hastie/Papers/ESLII.pdf">Elements of Statistical Learning</a>, I figured it would be a good idea to try to use the machine learning methods introduced in the book. I just finished a chapter on linear regression, and learned more about linear regression and the penalized methods (Ridge and Lasso). Since there is an abundant resource available online, it would be redundant to get into the details. I’ll quickly go over Ordinary Least Squares, Ridge, and Lasso regression, and quickly show an application of those methods in R.</p>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>All three of the models assume a linear model in which the output is a linear combination of the features (dependent variables).</p>
+<p><span class="math display">\[y = \beta_0 + \Sigma_{i=1}^p\beta_ix_i\]</span></p>
+<p>The difference comes from how the <span class="math inline">\(\beta_i\)</span> are estimated.</p>
+<p><strong>Ordinary Least Squares</strong> method picks <span class="math inline">\(\hat{\beta}\)</span> that minimizes the residual sum of squares:
+<span class="math display">\[RSS(\beta) = \Sigma_{i=1}^N (y_i - (\hat{\beta}_0 + \Sigma_{i=1}^p\hat{\beta}_ix_i))^2\]</span>
+<strong>Ridge Regression</strong> minimizes a function that takes into account RSS as well as the L2 Norm of <span class="math inline">\(\beta\)</span> values:
+<span class="math display">\[RSS_{ridge}(\beta) = \Sigma_{i=1}^N (y_i - (\hat{\beta}_0 + \Sigma_{i=1}^p\hat{\beta}_ix_i))^2 + \lambda\Sigma_{j=1}^p\beta_j^2\]</span></p>
+<p><strong>Lasso Regression</strong> is similar to ridge regression, except that it takes into account the L1 Norm of <span class="math inline">\(\beta\)</span> values:
+<span class="math display">\[RSS_{lasso}(\beta) = \Sigma_{i=1}^N (y_i - (\hat{\beta}_0 + \Sigma_{i=1}^p\hat{\beta}_ix_i))^2 + \lambda\Sigma_{j=1}^p|\beta_j|\]</span></p>
+<p><span class="math inline">\(\lambda\)</span> is a hyperparameter that determines how much penalty to give to the norms. Higher <span class="math inline">\(\lambda\)</span> will get the <span class="math inline">\(\beta\)</span> reaching 0, while <span class="math inline">\(\lambda\)</span> approaching 0 gets <span class="math inline">\(\beta\)</span> close to the OLS estimates.</p>
+<p>The extra penalty in the norms will cause the estimators to be “shrunk” in absolute values.</p>
+<p>I wanted to try all three types of regression using <code>R</code>, so I grabbed a <a href="https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md">coffee rating dataset</a> from <a href="https://github.com/rfordatascience/tidytuesday">tidy tuesday</a>. I chose this dataset after skimming through a bunch in the list for its simple description and the availability of the numeric variables for a response variable as well as the feature variables.</p>
+<p>The categorical variables could very well be coded into 1’s and 0’s for linear regression and the penalized regression, but the question remains: how can they also be standardized for “fair” evaluation? This is another topic in itself and I don’t plan to address this in this post, and only numerical variables will be included for the models.</p>
+</div>
+<div id="quick-data-clean" class="section level2">
+<h2>Quick Data Clean</h2>
+<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(naniar))
+suppressPackageStartupMessages(library(gplots))
+suppressPackageStartupMessages(library(glmnet))
+
+
+# source of the data
+# cofdat_tmp &lt;-
+#   readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv&#39;)
+cofdat_tmp &lt;-
+  readr::read_csv(&#39;../../../static/Dataset/coffee_ratings.csv&#39;)</code></pre>
+<pre><code>## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   .default = col_character(),
+##   total_cup_points = col_double(),
+##   number_of_bags = col_double(),
+##   aroma = col_double(),
+##   flavor = col_double(),
+##   aftertaste = col_double(),
+##   acidity = col_double(),
+##   body = col_double(),
+##   balance = col_double(),
+##   uniformity = col_double(),
+##   clean_cup = col_double(),
+##   sweetness = col_double(),
+##   cupper_points = col_double(),
+##   moisture = col_double(),
+##   category_one_defects = col_double(),
+##   quakers = col_double(),
+##   category_two_defects = col_double(),
+##   altitude_low_meters = col_double(),
+##   altitude_high_meters = col_double(),
+##   altitude_mean_meters = col_double()
+## )
+## i Use `spec()` for the full column specifications.</code></pre>
+<pre class="r"><code>print(dim(cofdat_tmp))</code></pre>
+<pre><code>## [1] 1339   43</code></pre>
+<pre class="r"><code>print(head(cofdat_tmp))</code></pre>
+<pre><code>## # A tibble: 6 x 43
+##   total_cup_points species owner country_of_orig~ farm_name lot_number mill 
+##              &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;
+## 1             90.6 Arabica meta~ Ethiopia         &quot;metad p~ &lt;NA&gt;       meta~
+## 2             89.9 Arabica meta~ Ethiopia         &quot;metad p~ &lt;NA&gt;       meta~
+## 3             89.8 Arabica grou~ Guatemala        &quot;san mar~ &lt;NA&gt;       &lt;NA&gt; 
+## 4             89   Arabica yidn~ Ethiopia         &quot;yidneka~ &lt;NA&gt;       wole~
+## 5             88.8 Arabica meta~ Ethiopia         &quot;metad p~ &lt;NA&gt;       meta~
+## 6             88.8 Arabica ji-a~ Brazil            &lt;NA&gt;     &lt;NA&gt;       &lt;NA&gt; 
+## # ... with 36 more variables: ico_number &lt;chr&gt;, company &lt;chr&gt;, altitude &lt;chr&gt;,
+## #   region &lt;chr&gt;, producer &lt;chr&gt;, number_of_bags &lt;dbl&gt;, bag_weight &lt;chr&gt;,
+## #   in_country_partner &lt;chr&gt;, harvest_year &lt;chr&gt;, grading_date &lt;chr&gt;,
+## #   owner_1 &lt;chr&gt;, variety &lt;chr&gt;, processing_method &lt;chr&gt;, aroma &lt;dbl&gt;,
+## #   flavor &lt;dbl&gt;, aftertaste &lt;dbl&gt;, acidity &lt;dbl&gt;, body &lt;dbl&gt;, balance &lt;dbl&gt;,
+## #   uniformity &lt;dbl&gt;, clean_cup &lt;dbl&gt;, sweetness &lt;dbl&gt;, cupper_points &lt;dbl&gt;,
+## #   moisture &lt;dbl&gt;, category_one_defects &lt;dbl&gt;, quakers &lt;dbl&gt;, color &lt;chr&gt;,
+## #   category_two_defects &lt;dbl&gt;, expiration &lt;chr&gt;, certification_body &lt;chr&gt;,
+## #   certification_address &lt;chr&gt;, certification_contact &lt;chr&gt;,
+## #   unit_of_measurement &lt;chr&gt;, altitude_low_meters &lt;dbl&gt;,
+## #   altitude_high_meters &lt;dbl&gt;, altitude_mean_meters &lt;dbl&gt;</code></pre>
+<pre class="r"><code># coffee type of score
+ggplot(cofdat_tmp) + 
+  geom_boxplot(aes(x = species, y = total_cup_points))</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vis1-1.png" width="672" /></p>
+<p>There’s one point where total rating is zero. It seems unusual for something to have a rating of complete 0, especially across all categories (except moisture?). I can’t imagine what it could have tasted like. In the end I’m not sure what led the judge to come to this conclusion, so for the time being, I removed this point as an outlier.</p>
+<pre class="r"><code>print(cofdat_tmp[cofdat_tmp$total_cup_points == 0,], width = Inf)</code></pre>
+<pre><code>## # A tibble: 1 x 43
+##   total_cup_points species owner           country_of_origin farm_name   
+##              &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;           &lt;chr&gt;             &lt;chr&gt;       
+## 1                0 Arabica bismarck castro Honduras          los hicaques
+##   lot_number mill               ico_number company           altitude region   
+##   &lt;chr&gt;      &lt;chr&gt;              &lt;chr&gt;      &lt;chr&gt;             &lt;chr&gt;    &lt;chr&gt;    
+## 1 103        cigrah s.a de c.v. 13-111-053 cigrah s.a de c.v 1400     comayagua
+##   producer        number_of_bags bag_weight in_country_partner          
+##   &lt;chr&gt;                    &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;                       
+## 1 Reinerio Zepeda            275 69 kg      Instituto Hondureño del Café
+##   harvest_year grading_date     owner_1         variety processing_method aroma
+##   &lt;chr&gt;        &lt;chr&gt;            &lt;chr&gt;           &lt;chr&gt;   &lt;chr&gt;             &lt;dbl&gt;
+## 1 2017         April 28th, 2017 Bismarck Castro Caturra &lt;NA&gt;                  0
+##   flavor aftertaste acidity  body balance uniformity clean_cup sweetness
+##    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1      0          0       0     0       0          0         0         0
+##   cupper_points moisture category_one_defects quakers color category_two_defects
+##           &lt;dbl&gt;    &lt;dbl&gt;                &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                &lt;dbl&gt;
+## 1             0     0.12                    0       0 Green                    2
+##   expiration       certification_body          
+##   &lt;chr&gt;            &lt;chr&gt;                       
+## 1 April 28th, 2018 Instituto Hondureño del Café
+##   certification_address                   
+##   &lt;chr&gt;                                   
+## 1 b4660a57e9f8cc613ae5b8f02bfce8634c763ab4
+##   certification_contact                    unit_of_measurement
+##   &lt;chr&gt;                                    &lt;chr&gt;              
+## 1 7f521ca403540f81ec99daec7da19c2788393880 m                  
+##   altitude_low_meters altitude_high_meters altitude_mean_meters
+##                 &lt;dbl&gt;                &lt;dbl&gt;                &lt;dbl&gt;
+## 1                1400                 1400                 1400</code></pre>
+<p>Since the data isn’t perfect, there are a lot of missing observations in some variables. <code>naniar</code> package has some tools that help with exploring the missingness of the data with clever visualizations. The first plot highlights the missing observations (row) for each variable (column). This can help with getting an idea of how much missingness there is and how the missingness is related across observations. Fortunately, the rating for each category are all present, so I will be able to keep all the observations. It seems like there is a fair amount of missing value in the altitude, so altitude will be omitted.</p>
+<p>The plots after show more information about the missing observations.</p>
+<pre class="r"><code># missing data explore
+vis_miss(cofdat_tmp, sort_miss = TRUE)</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vismiss-1.png" width="672" /></p>
+<pre class="r"><code>visdat::vis_dat(cofdat_tmp)</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vismiss-2.png" width="672" /></p>
+<pre class="r"><code>gg_miss_var(cofdat_tmp, show_pct = TRUE)</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vismiss-3.png" width="672" /></p>
+<p>After applying my previous remarks, the data is prepared for analysis.</p>
+<pre class="r"><code>cofdat &lt;- cofdat_tmp %&gt;%
+  filter(total_cup_points &gt; 50) %&gt;% 
+  select(
+    total_cup_points, aroma, flavor, aftertaste, acidity,
+    body, balance, uniformity, clean_cup, sweetness, cupper_points,
+    moisture, category_one_defects, category_two_defects, quakers
+  )
+head(cofdat)</code></pre>
+<pre><code>## # A tibble: 6 x 15
+##   total_cup_points aroma flavor aftertaste acidity  body balance uniformity
+##              &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;
+## 1             90.6  8.67   8.83       8.67    8.75  8.5     8.42         10
+## 2             89.9  8.75   8.67       8.5     8.58  8.42    8.42         10
+## 3             89.8  8.42   8.5        8.42    8.42  8.33    8.42         10
+## 4             89    8.17   8.58       8.42    8.42  8.5     8.25         10
+## 5             88.8  8.25   8.5        8.25    8.5   8.42    8.33         10
+## 6             88.8  8.58   8.42       8.42    8.5   8.25    8.33         10
+## # ... with 7 more variables: clean_cup &lt;dbl&gt;, sweetness &lt;dbl&gt;,
+## #   cupper_points &lt;dbl&gt;, moisture &lt;dbl&gt;, category_one_defects &lt;dbl&gt;,
+## #   category_two_defects &lt;dbl&gt;, quakers &lt;dbl&gt;</code></pre>
+<p>There is one missing observation in <code>quaker</code> variable, which stores the number of “bad” beans mixed in with the good beans. This is removed as well.</p>
+<pre class="r"><code># one missing value in quakers variable
+cofdat %&gt;% miss_var_summary()</code></pre>
+<pre><code>## # A tibble: 15 x 3
+##    variable             n_miss pct_miss
+##    &lt;chr&gt;                 &lt;int&gt;    &lt;dbl&gt;
+##  1 quakers                   1   0.0747
+##  2 total_cup_points          0   0     
+##  3 aroma                     0   0     
+##  4 flavor                    0   0     
+##  5 aftertaste                0   0     
+##  6 acidity                   0   0     
+##  7 body                      0   0     
+##  8 balance                   0   0     
+##  9 uniformity                0   0     
+## 10 clean_cup                 0   0     
+## 11 sweetness                 0   0     
+## 12 cupper_points             0   0     
+## 13 moisture                  0   0     
+## 14 category_one_defects      0   0     
+## 15 category_two_defects      0   0</code></pre>
+<pre class="r"><code>cofdat &lt;- na.omit(cofdat)</code></pre>
+<p>I can plot box plots and histogram to skim through the distribution of each variables.</p>
+<pre class="r"><code>cof_long &lt;- cofdat %&gt;% pivot_longer(cols = everything(), names_to = &quot;Var&quot;, values_to = &quot;value&quot;)
+
+ggplot(cof_long) + 
+  geom_boxplot(aes(x = Var, y = value)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3, size = 8), axis.title = element_blank())</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/show_dist-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(cof_long) +
+  geom_histogram(aes(value), bins = 50) +
+  facet_wrap(facets = ~Var, scales = &quot;free&quot;)</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/show_dist-2.png" width="672" /></p>
+<p>One notable thing is that <code>category_one_defects</code>, <code>category_two_defects</code>, and <code>quakers</code> comparatively have a lot of 0’s than non-zero values. These variables look like an indicator of defects, so they should negatively affect the total score. I am curious to see how they will affecting the score.</p>
+<p>Lastly, I checked the correlation between all the variables included in the model. Ideally, I would not want to have a high correlation among the variables since that could lead to the inflation of the standard error for <span class="math inline">\(\beta\)</span> estimates, possibly making the <span class="math inline">\(\beta\)</span> very unstable.</p>
+<pre class="r"><code>cof_cor &lt;- cor(cofdat)
+
+heatmap.2(cof_cor, symm = TRUE, col = bluered(100), trace = &quot;none&quot;, main = &quot;Correlation Between Variables\n(with Hierarchical Clustering)&quot;)</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/correlations-1.png" width="672" />
+As I suspected, I see some strong correlations among the ratings. It does make sense to see this since a good bean is bound to have multiple positive characteristics. At the top of the heatmap we have flavor and aftertaste. If a food has good flavor, I would expect to have a pleasant aftertaste. Another interesting takeaway from the heatmap is how the three of last four variables, <code>category_one_defects</code>, <code>category_two_defects</code>, and <code>quakers</code>, which are indicators of poor quality, are clustered out of the other ratings. Frankly, I don’t know why moisture joined the party there because I have no knowledge of coffee bean ratings. The association looks very weak, so it could be a random chance. But it could very well be that higher rating for moisture is a bad thing.</p>
+<p>In the end, I decided to keep all the variables for regression since all of these variables were likely to have been considered for the final score.</p>
+</div>
+<div id="running-the-models" class="section level2">
+<h2>Running the Models</h2>
+<div id="linear-regression-with-ordinary-least-squares" class="section level3">
+<h3>Linear Regression with Ordinary Least Squares</h3>
+<p>This part is simple, as I only need to use <code>lm()</code> and <code>summary()</code> to review the output.</p>
+<pre class="r"><code>linreg &lt;- lm(total_cup_points ~ ., data = cofdat)
+summary(linreg)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_cup_points ~ ., data = cofdat)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.42978 -0.00374 -0.00085  0.00751  0.10215 
+## 
+## Coefficients:
+##                        Estimate Std. Error  t value Pr(&gt;|t|)    
+## (Intercept)           1.289e-02  1.561e-02    0.826    0.409    
+## aroma                 9.992e-01  2.032e-03  491.712  &lt; 2e-16 ***
+## flavor                9.993e-01  2.880e-03  346.939  &lt; 2e-16 ***
+## aftertaste            1.000e+00  2.633e-03  379.855  &lt; 2e-16 ***
+## acidity               9.973e-01  2.086e-03  478.222  &lt; 2e-16 ***
+## body                  1.002e+00  1.962e-03  510.931  &lt; 2e-16 ***
+## balance               1.002e+00  2.006e-03  499.669  &lt; 2e-16 ***
+## uniformity            1.002e+00  9.923e-04 1009.913  &lt; 2e-16 ***
+## clean_cup             9.997e-01  7.039e-04 1420.342  &lt; 2e-16 ***
+## sweetness             9.982e-01  8.372e-04 1192.313  &lt; 2e-16 ***
+## cupper_points         9.981e-01  1.557e-03  641.145  &lt; 2e-16 ***
+## moisture              8.139e-03  9.066e-03    0.898    0.370    
+## category_one_defects -1.681e-03  1.746e-04   -9.631  &lt; 2e-16 ***
+## category_two_defects -3.473e-04  8.653e-05   -4.013 6.32e-05 ***
+## quakers              -2.325e-04  5.058e-04   -0.460    0.646    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.01534 on 1322 degrees of freedom
+## Multiple R-squared:      1,  Adjusted R-squared:      1 
+## F-statistic: 2.929e+06 on 14 and 1322 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="ridge-regression" class="section level3">
+<h3>Ridge Regression</h3>
+<p>I use the package <code>glmnet</code> to use ridge and lasso methods. The elastic net penalty in <code>glmnet</code> is given by:</p>
+<p><span class="math display">\[\frac{(1-\alpha)}{2}||\beta_j||_2^2+\alpha||\beta_j||_2\]</span></p>
+<p>Whether the regression is ridge, lasso, or in between is controlled by <span class="math inline">\(\alpha\)</span>, with <span class="math inline">\(\alpha = 1\)</span> being lasso and <span class="math inline">\(\alpha = 0\)</span> being ridge.</p>
+<p>To determine the most appropriate <span class="math inline">\(\lambda\)</span>, <a href="https://en.wikipedia.org/wiki/Cross-validation_(statistics)">cross validation</a> can be used. <code>cv.glmnet</code> does the heavy lifting for me and calculates the MSE for each lambda after doing cross validation. I opt for the highest <span class="math inline">\(\lambda\)</span> whose MSE is within 1 sd of the lowest MSE across all the <span class="math inline">\(\lambda\)</span>s. I believe this leads to better generalization while maintaining low training error.</p>
+<p>This short code will run cross-validation with various <span class="math inline">\(\lambda\)</span>s, choose the appropriate lambda, and get a final model with that lambda.</p>
+<pre class="r"><code># Choose the value of lambdas I&#39;d like to test
+lambdas &lt;- exp(1)^seq(3, -10, by = -0.05)
+
+# Cross validation with different lambdas
+ridge &lt;- cv.glmnet(
+    x = as.matrix(cofdat[, -1]),
+    y = cofdat$total_cup_points,
+    alpha = 0,
+    standardize = TRUE, # standardizes training data
+    lambda = lambdas
+  )
+
+# choose lambda.1se
+print(ridge$lambda.1se)</code></pre>
+<pre><code>## [1] 0.03877421</code></pre>
+<pre class="r"><code>ridge_final &lt;- glmnet(
+  x = as.matrix(cofdat[, -1]),
+  y = cofdat$total_cup_points,
+  alpha = 0,
+  standardize = TRUE, # standardizes training data
+  lambda = ridge$lambda.1se
+)
+
+print(ridge_final$a0)</code></pre>
+<pre><code>##        s0 
+## 0.3755191</code></pre>
+<pre class="r"><code>print(ridge_final$beta)</code></pre>
+<pre><code>## 14 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                 s0
+## aroma                 0.9907920628
+## flavor                1.0214067393
+## aftertaste            1.0011881996
+## acidity               0.9888159329
+## body                  0.9939766384
+## balance               1.0014300201
+## uniformity            0.9975419726
+## clean_cup             0.9884834152
+## sweetness             0.9890917946
+## cupper_points         0.9856624624
+## moisture              0.0051675667
+## category_one_defects -0.0022493552
+## category_two_defects -0.0008581067
+## quakers               0.0001926588</code></pre>
+<p>Just a couple things to note here:</p>
+<ul>
+<li><code>x</code> expects a matrix input where each column is a feature and each row is an observation. The data cleaning step is usually conveniently done with a <code>data.frame</code> but if <code>data.frame</code> is passed into <code>x</code>, then an error will be put out.</li>
+<li><code>standardize</code> does the scaling (standardization) of the feature inputs for me and returns the rescaled-version of the coefficients. If you have already done the standardization yourself, then you can set <code>standardize</code> to FALSE.</li>
+</ul>
+</div>
+<div id="lasso" class="section level3">
+<h3>LASSO</h3>
+<pre class="r"><code>lasso &lt;- cv.glmnet(
+  x = as.matrix(cofdat[, -1]),
+  y = cofdat$total_cup_points,
+  alpha = 1,
+  standardize = TRUE, # standardizes training data
+  lambda = lambdas
+)
+
+# choose lambda.1se
+print(lasso$lambda.1se)</code></pre>
+<pre><code>## [1] 0.008229747</code></pre>
+<pre class="r"><code>lasso_final &lt;- glmnet(
+  x = as.matrix(cofdat[, -1]),
+  y = cofdat$total_cup_points,
+  alpha = 1,
+  standardize = TRUE, # standardizes training data
+  lambda = lasso$lambda.1se
+)
+
+print(lasso_final$a0)</code></pre>
+<pre><code>##        s0 
+## 0.4365004</code></pre>
+<pre class="r"><code>print(lasso_final$beta)</code></pre>
+<pre><code>## 14 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                             s0
+## aroma                0.9898702
+## flavor               1.0154765
+## aftertaste           1.0027773
+## acidity              0.9864861
+## body                 0.9856087
+## balance              1.0016122
+## uniformity           0.9944713
+## clean_cup            0.9956102
+## sweetness            0.9886372
+## cupper_points        0.9881835
+## moisture             .        
+## category_one_defects .        
+## category_two_defects .        
+## quakers              .</code></pre>
+</div>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>Let’s see the results and see how the coefficients differ.</p>
+<pre class="r"><code>coefs &lt;- data.frame(variable = colnames(cofdat)[-1])
+coefs$lm &lt;- linreg$coefficients[coefs$variable]
+coefs$ridge &lt;- ridge_final$beta[coefs$variable,]
+coefs$lasso &lt;- lasso_final$beta[coefs$variable,]
+
+coefs_long &lt;- coefs %&gt;%
+  mutate(variable = factor(variable, sort(variable))) %&gt;%
+  pivot_longer(cols = c(&quot;lm&quot;, &quot;ridge&quot;, &quot;lasso&quot;), names_to = &quot;Method&quot;, values_to = &quot;Coefficients&quot;) %&gt;% 
+  filter(abs(Coefficients) &gt; 0) %&gt;%
+  mutate(Method = factor(Method, c(&quot;lm&quot;, &quot;ridge&quot;, &quot;lasso&quot;), labels = c(&quot;Linear Regression&quot;, &quot;Ridge&quot;, &quot;Lasso&quot;)))
+
+coefs_long$low &lt;- ifelse(coefs_long$Coefficients &lt; 0.1, TRUE, FALSE)
+ggplot(filter(coefs_long)) + 
+  facet_grid(rows = vars(low), scales = &quot;free_y&quot;) +
+  geom_point(aes(x = variable, y = Coefficients, color = Method)) +
+  ggtitle(&quot;Coefficient Comparison across Three Models&quot;) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))</code></pre>
+<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+You can see that the coefficients are all around zero, with the exception of the four variables that indicate poor quality. I think it should come clear from this result that the final rating, <code>total_cup_points</code>, is actually a simple sum of those ratings! Honestly, I hadn’t thought this through when I was choosing the dataset and running the regressions. I should have seen this beforehand in hindsight; there are 10 rating features, all ranging from 0 to 10, and the total score is on a range from 0 to 100.</p>
+<p>You can still see the shrinkage effect in the penalized regression in the coefficient comparison plot above. Ridge and Lasso’s coefficients are lower in absolute value than the OLS methods for the most part. Furthermore, the coefficients for <code>category_one_defects</code>, <code>category_two_defects</code>, <code>moisture</code>, and <code>quakers</code> are all shrunk to 0 for Lasso. All the methods seem to capture the relationship between the 10 rating features and the final score.</p>
+<p>There are some cases where the final score is not exactly a total sum of the 10 variables, and this makes the coefficients to deviate slightly from 1.</p>
+</div>
+<div id="ending-remark" class="section level2">
+<h2>Ending Remark</h2>
+<p>In this post, I grabbed a coffee dataset to practice penalized regression and see the shrinkage effect in action. We observed some of the variables being shrunk to zero as the penalty increases in Lasso. We were able to see that with the help of the regression models that the final score is simply a linear combination of 10 different ratings for characteristics for coffee beans. Unfortunately, it was difficult to see if the extra generalization from the penalized methods helped with prediction of the response due to the nature of the variables. When the time comes, I will try these methods on a different datasets and see if the generalizations help with making a better model.</p>
+</div>

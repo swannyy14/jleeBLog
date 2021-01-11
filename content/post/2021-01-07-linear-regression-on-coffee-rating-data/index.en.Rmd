@@ -1,0 +1,242 @@
+---
+title: Linear Regression on Coffee Rating Data
+author: John Lee
+date: '2021-01-07'
+slug: []
+categories:
+  - machine learning
+  - Statistics
+tags:
+  - linear regression
+  - regression
+type: ''
+subtitle: ''
+image: ''
+---
+
+While I am reading [Elements of Statistical Learning](https://web.stanford.edu/~hastie/Papers/ESLII.pdf), I figured it would be a good idea to try to use the machine learning methods introduced in the book. I just finished a chapter on linear regression, and learned more about linear regression and the penalized methods (Ridge and Lasso). Since there is an abundant resource available online, it would be redundant to get into the details. I'll quickly go over Ordinary Least Squares, Ridge, and Lasso regression, and quickly show an application of those methods in R.
+
+## Overview
+
+All three of the models assume a linear model in which the output is a linear combination of the features (dependent variables).
+
+$$y = \beta_0 + \Sigma_{i=1}^p\beta_ix_i$$
+
+The difference comes from how the $\beta_i$ are estimated.
+
+**Ordinary Least Squares** method picks $\hat{\beta}$ that minimizes the residual sum of squares:
+$$RSS(\beta) = \Sigma_{i=1}^N (y_i - (\hat{\beta}_0 + \Sigma_{i=1}^p\hat{\beta}_ix_i))^2$$
+**Ridge Regression** minimizes a function that takes into account RSS as well as the L2 Norm of $\beta$ values:
+$$RSS_{ridge}(\beta) = \Sigma_{i=1}^N (y_i - (\hat{\beta}_0 + \Sigma_{i=1}^p\hat{\beta}_ix_i))^2 + \lambda\Sigma_{j=1}^p\beta_j^2$$
+
+**Lasso Regression** is similar to ridge regression, except that it takes into account the L1 Norm of $\beta$ values:
+$$RSS_{lasso}(\beta) = \Sigma_{i=1}^N (y_i - (\hat{\beta}_0 + \Sigma_{i=1}^p\hat{\beta}_ix_i))^2 + \lambda\Sigma_{j=1}^p|\beta_j|$$
+
+$\lambda$ is a hyperparameter that determines how much penalty to give to the norms. Higher $\lambda$ will get the $\beta$ reaching 0, while $\lambda$ approaching 0 gets $\beta$ close to the OLS estimates.
+
+The extra penalty in the norms will cause the estimators to be "shrunk" in absolute values. 
+
+I wanted to try all three types of regression using `R`, so I grabbed a [coffee rating dataset](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md) from [tidy tuesday](https://github.com/rfordatascience/tidytuesday). I chose this dataset after skimming through a bunch in the list for its simple description and the availability of the numeric variables for a response variable as well as the feature variables. 
+
+The categorical variables could very well be coded into 1's and 0's for linear regression and the penalized regression, but the question remains: how can they also be standardized for "fair" evaluation? This is another topic in itself and I don't plan to address this in this post, and only numerical variables will be included for the models.
+
+## Quick Data Clean
+
+```{r read_data}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(naniar))
+suppressPackageStartupMessages(library(gplots))
+suppressPackageStartupMessages(library(glmnet))
+
+
+# source of the data
+# cofdat_tmp <-
+#   readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv')
+cofdat_tmp <-
+  readr::read_csv('../../../static/Dataset/coffee_ratings.csv')
+
+print(dim(cofdat_tmp))
+print(head(cofdat_tmp))
+```
+
+```{r vis1}
+# coffee type of score
+ggplot(cofdat_tmp) + 
+  geom_boxplot(aes(x = species, y = total_cup_points))
+```
+
+There's one point where total rating is zero. It seems unusual for something to have a rating of complete 0, especially across all categories (except moisture?). I can't imagine what it could have tasted like. In the end I'm not sure what led the judge to come to this conclusion, so for the time being, I removed this point as an outlier.
+
+```{r outlier_point}
+print(cofdat_tmp[cofdat_tmp$total_cup_points == 0,], width = Inf)
+```
+Since the data isn't perfect, there are a lot of missing observations in some variables. `naniar` package has some tools that help with exploring the missingness of the data with clever visualizations. The first plot highlights the missing observations (row) for each variable (column). This can help with getting an idea of how much missingness there is and how the missingness is related across observations. Fortunately, the rating for each category are all present, so I will be able to keep all the observations. It seems like there is a fair amount of missing value in the altitude, so altitude will be omitted.
+
+The plots after show more information about the missing observations.
+
+```{r vismiss}
+# missing data explore
+vis_miss(cofdat_tmp, sort_miss = TRUE)
+visdat::vis_dat(cofdat_tmp)
+gg_miss_var(cofdat_tmp, show_pct = TRUE)
+```
+
+After applying my previous remarks, the data is prepared for analysis.
+
+```{r final_data}
+cofdat <- cofdat_tmp %>%
+  filter(total_cup_points > 50) %>% 
+  select(
+    total_cup_points, aroma, flavor, aftertaste, acidity,
+    body, balance, uniformity, clean_cup, sweetness, cupper_points,
+    moisture, category_one_defects, category_two_defects, quakers
+  )
+head(cofdat)
+```
+
+There is one missing observation in `quaker` variable, which stores the number of "bad" beans mixed in with the good beans. This is removed as well.
+
+```{r remove_quaker_miss}
+# one missing value in quakers variable
+cofdat %>% miss_var_summary()
+cofdat <- na.omit(cofdat)
+```
+
+I can plot box plots and histogram to skim through the distribution of each variables.
+
+```{r show_dist}
+cof_long <- cofdat %>% pivot_longer(cols = everything(), names_to = "Var", values_to = "value")
+
+ggplot(cof_long) + 
+  geom_boxplot(aes(x = Var, y = value)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3, size = 8), axis.title = element_blank())
+
+ggplot(cof_long) +
+  geom_histogram(aes(value), bins = 50) +
+  facet_wrap(facets = ~Var, scales = "free")
+```
+
+One notable thing is that `category_one_defects`, `category_two_defects`, and `quakers` comparatively have a lot of 0's than non-zero values. These variables look like an indicator of defects, so they should negatively affect the total score. I am curious to see how they will affecting the score.
+
+Lastly, I checked the correlation between all the variables included in the model. Ideally, I would not want to have a high correlation among the variables since that could lead to the inflation of the standard error for $\beta$ estimates, possibly making the $\beta$ very unstable.
+
+```{r correlations}
+cof_cor <- cor(cofdat)
+
+heatmap.2(cof_cor, symm = TRUE, col = bluered(100), trace = "none", main = "Correlation Between Variables\n(with Hierarchical Clustering)")
+```
+As I suspected, I see some strong correlations among the ratings. It does make sense to see this since a good bean is bound to have multiple positive characteristics. At the top of the heatmap we have flavor and aftertaste. If a food has good flavor, I would expect to have a pleasant aftertaste. Another interesting takeaway from the heatmap is how the three of last four variables, `category_one_defects`, `category_two_defects`, and `quakers`, which are indicators of poor quality, are clustered out of the other ratings. Frankly, I don't know why moisture joined the party there because I have no knowledge of coffee bean ratings. The association looks very weak, so it could be a random chance. But it could very well be that higher rating for moisture is a bad thing.
+
+In the end, I decided to keep all the variables for regression since all of these variables were likely to have been considered for the final score.
+
+## Running the Models
+
+### Linear Regression with Ordinary Least Squares
+
+This part is simple, as I only need to use `lm()` and `summary()` to review the output.
+
+```{r run_linear_regression}
+linreg <- lm(total_cup_points ~ ., data = cofdat)
+summary(linreg)
+```
+
+### Ridge Regression
+
+I use the package `glmnet` to use ridge and lasso methods. The elastic net penalty in `glmnet` is given by:
+
+$$\frac{(1-\alpha)}{2}||\beta_j||_2^2+\alpha||\beta_j||_2$$
+
+Whether the regression is ridge, lasso, or in between is controlled by $\alpha$, with $\alpha = 1$ being lasso and $\alpha = 0$ being ridge.
+
+To determine the most appropriate $\lambda$, [cross validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) can be used. `cv.glmnet` does the heavy lifting for me and calculates the MSE for each lambda after doing cross validation. I opt for the highest $\lambda$ whose MSE is within 1 sd of the lowest MSE across all the $\lambda$s. I believe this leads to better generalization while maintaining low training error.
+
+This short code will run cross-validation with various $\lambda$s, choose the appropriate lambda, and get a final model with that lambda.
+```{r run_ridge}
+# Choose the value of lambdas I'd like to test
+lambdas <- exp(1)^seq(3, -10, by = -0.05)
+
+# Cross validation with different lambdas
+ridge <- cv.glmnet(
+    x = as.matrix(cofdat[, -1]),
+    y = cofdat$total_cup_points,
+    alpha = 0,
+    standardize = TRUE, # standardizes training data
+    lambda = lambdas
+  )
+
+# choose lambda.1se
+print(ridge$lambda.1se)
+ridge_final <- glmnet(
+  x = as.matrix(cofdat[, -1]),
+  y = cofdat$total_cup_points,
+  alpha = 0,
+  standardize = TRUE, # standardizes training data
+  lambda = ridge$lambda.1se
+)
+
+print(ridge_final$a0)
+print(ridge_final$beta)
+```
+
+Just a couple things to note here:
+
+- `x` expects a matrix input where each column is a feature and each row is an observation. The data cleaning step is usually conveniently done with a `data.frame` but if `data.frame` is passed into `x`, then an error will be put out.
+- `standardize` does the scaling (standardization) of the feature inputs for me and returns the rescaled-version of the coefficients. If you have already done the standardization yourself, then you can set `standardize` to FALSE.
+
+### LASSO
+
+```{r run_lasso}
+lasso <- cv.glmnet(
+  x = as.matrix(cofdat[, -1]),
+  y = cofdat$total_cup_points,
+  alpha = 1,
+  standardize = TRUE, # standardizes training data
+  lambda = lambdas
+)
+
+# choose lambda.1se
+print(lasso$lambda.1se)
+lasso_final <- glmnet(
+  x = as.matrix(cofdat[, -1]),
+  y = cofdat$total_cup_points,
+  alpha = 1,
+  standardize = TRUE, # standardizes training data
+  lambda = lasso$lambda.1se
+)
+
+print(lasso_final$a0)
+print(lasso_final$beta)
+```
+
+## Results
+
+Let's see the results and see how the coefficients differ.
+
+```{r}
+coefs <- data.frame(variable = colnames(cofdat)[-1])
+coefs$lm <- linreg$coefficients[coefs$variable]
+coefs$ridge <- ridge_final$beta[coefs$variable,]
+coefs$lasso <- lasso_final$beta[coefs$variable,]
+
+coefs_long <- coefs %>%
+  mutate(variable = factor(variable, sort(variable))) %>%
+  pivot_longer(cols = c("lm", "ridge", "lasso"), names_to = "Method", values_to = "Coefficients") %>% 
+  filter(abs(Coefficients) > 0) %>%
+  mutate(Method = factor(Method, c("lm", "ridge", "lasso"), labels = c("Linear Regression", "Ridge", "Lasso")))
+
+coefs_long$low <- ifelse(coefs_long$Coefficients < 0.1, TRUE, FALSE)
+ggplot(filter(coefs_long)) + 
+  facet_grid(rows = vars(low), scales = "free_y") +
+  geom_point(aes(x = variable, y = Coefficients, color = Method)) +
+  ggtitle("Coefficient Comparison across Three Models") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+You can see that the coefficients are all around zero, with the exception of the four variables that indicate poor quality. I think it should come clear from this result that the final rating, `total_cup_points`, is actually a simple sum of those ratings! Honestly, I hadn't thought this through when I was choosing the dataset and running the regressions. I should have seen this beforehand in hindsight; there are 10 rating features, all ranging from 0 to 10, and the total score is on a range from 0 to 100. 
+
+You can still see the shrinkage effect in the penalized regression in the coefficient comparison plot above. Ridge and Lasso's coefficients are lower in absolute value than the OLS methods for the most part. Furthermore, the coefficients for `category_one_defects`, `category_two_defects`, `moisture`, and `quakers` are all shrunk to 0 for Lasso. All the methods seem to capture the relationship between the 10 rating features and the final score.
+
+There are some cases where the final score is not exactly a total sum of the 10 variables, and this makes the coefficients to deviate slightly from 1.
+
+## Ending Remark
+
+In this post, I grabbed a coffee dataset to practice penalized regression and see the shrinkage effect in action. We observed some of the variables being shrunk to zero as the penalty increases in Lasso. We were able to see that with the help of the regression models that the final score is simply a linear combination of 10 different ratings for characteristics for coffee beans. Unfortunately, it was difficult to see if the extra generalization from the penalized methods helped with prediction of the response due to the nature of the variables. When the time comes, I will try these methods on a different datasets and see if the generalizations help with making a better model.
