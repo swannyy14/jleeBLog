@@ -53,7 +53,7 @@ suppressPackageStartupMessages(library(glmnet))
 # cofdat_tmp <-
 #   readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv')
 cofdat_tmp <-
-  readr::read_csv('../../../static/Dataset/coffee_ratings.csv')
+  readr::read_csv('coffee_ratings.csv')
 
 print(dim(cofdat_tmp))
 print(head(cofdat_tmp))
