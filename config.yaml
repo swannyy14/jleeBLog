@@ -3,7 +3,7 @@ DefaultContentLanguage: en
 title: Casual Inference
 theme: beautifulhugo
 metaDataFormat: yaml
-pygmentsStyle: trac
+# pygmentsStyle: trac
 pygmentsUseClasses: yes
 pygmentsCodeFences: yes
 pygmentsCodefencesGuessSyntax: yes
@@ -22,7 +22,7 @@ Params:
   showRelatedPosts: yes
   socialShare: yes
   subtitle: A blog significantly on statistics
-  useHLJS: yes
+  useHLJS: no
   wordCount: yes
 Author:
 #  500px: username
