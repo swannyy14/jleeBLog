@@ -14,6 +14,7 @@ subtitle: ''
 image: ''
 ---
 
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
 
 
 <p>While I am reading <a href="https://web.stanford.edu/~hastie/Papers/ESLII.pdf">Elements of Statistical Learning</a>, I figured it would be a good idea to try to use the machine learning methods introduced in the book. I just finished a chapter on linear regression, and learned more about linear regression and the penalized methods (Ridge and Lasso). Since there is an abundant resource available online, it would be redundant to get into the details. I’ll quickly go over Ordinary Least Squares, Ridge, and Lasso regression, and quickly show an application of those methods in R.</p>
@@ -35,8 +36,10 @@ image: ''
 </div>
 <div id="quick-data-clean" class="section level2">
 <h2>Quick Data Clean</h2>
-<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(naniar))
+<pre class="r"><code>suppressPackageStartupMessages(library(tidyverse))</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.0.5</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.0.5</code></pre>
+<pre class="r"><code>suppressPackageStartupMessages(library(naniar))
 suppressPackageStartupMessages(library(gplots))
 suppressPackageStartupMessages(library(glmnet))
 
@@ -45,7 +48,7 @@ suppressPackageStartupMessages(library(glmnet))
 # cofdat_tmp &lt;-
 #   readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv&#39;)
 cofdat_tmp &lt;-
-  readr::read_csv(&#39;../../../static/Dataset/coffee_ratings.csv&#39;)</code></pre>
+  readr::read_csv(&#39;coffee_ratings.csv&#39;)</code></pre>
 <pre><code>## 
 ## -- Column specification --------------------------------------------------------
 ## cols(
@@ -75,14 +78,14 @@ cofdat_tmp &lt;-
 <pre><code>## [1] 1339   43</code></pre>
 <pre class="r"><code>print(head(cofdat_tmp))</code></pre>
 <pre><code>## # A tibble: 6 x 43
-##   total_cup_points species owner country_of_orig~ farm_name lot_number mill 
-##              &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;
-## 1             90.6 Arabica meta~ Ethiopia         &quot;metad p~ &lt;NA&gt;       meta~
-## 2             89.9 Arabica meta~ Ethiopia         &quot;metad p~ &lt;NA&gt;       meta~
-## 3             89.8 Arabica grou~ Guatemala        &quot;san mar~ &lt;NA&gt;       &lt;NA&gt; 
-## 4             89   Arabica yidn~ Ethiopia         &quot;yidneka~ &lt;NA&gt;       wole~
-## 5             88.8 Arabica meta~ Ethiopia         &quot;metad p~ &lt;NA&gt;       meta~
-## 6             88.8 Arabica ji-a~ Brazil            &lt;NA&gt;     &lt;NA&gt;       &lt;NA&gt; 
+##   total_cup_points species owner   country_of_orig~ farm_name   lot_number mill 
+##              &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;            &lt;chr&gt;       &lt;chr&gt;      &lt;chr&gt;
+## 1             90.6 Arabica metad ~ Ethiopia         &quot;metad plc&quot; NA         meta~
+## 2             89.9 Arabica metad ~ Ethiopia         &quot;metad plc&quot; NA         meta~
+## 3             89.8 Arabica ground~ Guatemala        &quot;san marco~ NA         NA   
+## 4             89   Arabica yidnek~ Ethiopia         &quot;yidnekach~ NA         wole~
+## 5             88.8 Arabica metad ~ Ethiopia         &quot;metad plc&quot; NA         meta~
+## 6             88.8 Arabica ji-ae ~ Brazil            NA         NA         NA   
 ## # ... with 36 more variables: ico_number &lt;chr&gt;, company &lt;chr&gt;, altitude &lt;chr&gt;,
 ## #   region &lt;chr&gt;, producer &lt;chr&gt;, number_of_bags &lt;dbl&gt;, bag_weight &lt;chr&gt;,
 ## #   in_country_partner &lt;chr&gt;, harvest_year &lt;chr&gt;, grading_date &lt;chr&gt;,
@@ -97,7 +100,7 @@ cofdat_tmp &lt;-
 <pre class="r"><code># coffee type of score
 ggplot(cofdat_tmp) + 
   geom_boxplot(aes(x = species, y = total_cup_points))</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vis1-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/vis1-1.png" width="672" /></p>
 <p>There’s one point where total rating is zero. It seems unusual for something to have a rating of complete 0, especially across all categories (except moisture?). I can’t imagine what it could have tasted like. In the end I’m not sure what led the judge to come to this conclusion, so for the time being, I removed this point as an outlier.</p>
 <pre class="r"><code>print(cofdat_tmp[cofdat_tmp$total_cup_points == 0,], width = Inf)</code></pre>
 <pre><code>## # A tibble: 1 x 43
@@ -112,7 +115,7 @@ ggplot(cofdat_tmp) +
 ## 1 Reinerio Zepeda            275 69 kg      Instituto Hondureño del Café
 ##   harvest_year grading_date     owner_1         variety processing_method aroma
 ##   &lt;chr&gt;        &lt;chr&gt;            &lt;chr&gt;           &lt;chr&gt;   &lt;chr&gt;             &lt;dbl&gt;
-## 1 2017         April 28th, 2017 Bismarck Castro Caturra &lt;NA&gt;                  0
+## 1 2017         April 28th, 2017 Bismarck Castro Caturra NA                    0
 ##   flavor aftertaste acidity  body balance uniformity clean_cup sweetness
 ##    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
 ## 1      0          0       0     0       0          0         0         0
@@ -135,11 +138,11 @@ ggplot(cofdat_tmp) +
 <p>The plots after show more information about the missing observations.</p>
 <pre class="r"><code># missing data explore
 vis_miss(cofdat_tmp, sort_miss = TRUE)</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vismiss-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/vismiss-1.png" width="672" /></p>
 <pre class="r"><code>visdat::vis_dat(cofdat_tmp)</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vismiss-2.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/vismiss-2.png" width="672" /></p>
 <pre class="r"><code>gg_miss_var(cofdat_tmp, show_pct = TRUE)</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/vismiss-3.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/vismiss-3.png" width="672" /></p>
 <p>After applying my previous remarks, the data is prepared for analysis.</p>
 <pre class="r"><code>cofdat &lt;- cofdat_tmp %&gt;%
   filter(total_cup_points &gt; 50) %&gt;% 
@@ -189,17 +192,17 @@ cofdat %&gt;% miss_var_summary()</code></pre>
 ggplot(cof_long) + 
   geom_boxplot(aes(x = Var, y = value)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.3, size = 8), axis.title = element_blank())</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/show_dist-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/show_dist-1.png" width="672" /></p>
 <pre class="r"><code>ggplot(cof_long) +
   geom_histogram(aes(value), bins = 50) +
   facet_wrap(facets = ~Var, scales = &quot;free&quot;)</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/show_dist-2.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/show_dist-2.png" width="672" /></p>
 <p>One notable thing is that <code>category_one_defects</code>, <code>category_two_defects</code>, and <code>quakers</code> comparatively have a lot of 0’s than non-zero values. These variables look like an indicator of defects, so they should negatively affect the total score. I am curious to see how they will affecting the score.</p>
 <p>Lastly, I checked the correlation between all the variables included in the model. Ideally, I would not want to have a high correlation among the variables since that could lead to the inflation of the standard error for <span class="math inline">\(\beta\)</span> estimates, possibly making the <span class="math inline">\(\beta\)</span> very unstable.</p>
 <pre class="r"><code>cof_cor &lt;- cor(cofdat)
 
 heatmap.2(cof_cor, symm = TRUE, col = bluered(100), trace = &quot;none&quot;, main = &quot;Correlation Between Variables\n(with Hierarchical Clustering)&quot;)</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/correlations-1.png" width="672" />
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/correlations-1.png" width="672" />
 As I suspected, I see some strong correlations among the ratings. It does make sense to see this since a good bean is bound to have multiple positive characteristics. At the top of the heatmap we have flavor and aftertaste. If a food has good flavor, I would expect to have a pleasant aftertaste. Another interesting takeaway from the heatmap is how the three of last four variables, <code>category_one_defects</code>, <code>category_two_defects</code>, and <code>quakers</code>, which are indicators of poor quality, are clustered out of the other ratings. Frankly, I don’t know why moisture joined the party there because I have no knowledge of coffee bean ratings. The association looks very weak, so it could be a random chance. But it could very well be that higher rating for moisture is a bad thing.</p>
 <p>In the end, I decided to keep all the variables for regression since all of these variables were likely to have been considered for the final score.</p>
 </div>
@@ -361,7 +364,7 @@ ggplot(filter(coefs_long)) +
   geom_point(aes(x = variable, y = Coefficients, color = Method)) +
   ggtitle(&quot;Coefficient Comparison across Three Models&quot;) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))</code></pre>
-<p><img src="/post/2021-01-07-linear-regression-on-coffee-rating-data/index.en_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 You can see that the coefficients are all around zero, with the exception of the four variables that indicate poor quality. I think it should come clear from this result that the final rating, <code>total_cup_points</code>, is actually a simple sum of those ratings! Honestly, I hadn’t thought this through when I was choosing the dataset and running the regressions. I should have seen this beforehand in hindsight; there are 10 rating features, all ranging from 0 to 10, and the total score is on a range from 0 to 100.</p>
 <p>You can still see the shrinkage effect in the penalized regression in the coefficient comparison plot above. Ridge and Lasso’s coefficients are lower in absolute value than the OLS methods for the most part. Furthermore, the coefficients for <code>category_one_defects</code>, <code>category_two_defects</code>, <code>moisture</code>, and <code>quakers</code> are all shrunk to 0 for Lasso. All the methods seem to capture the relationship between the 10 rating features and the final score.</p>
 <p>There are some cases where the final score is not exactly a total sum of the 10 variables, and this makes the coefficients to deviate slightly from 1.</p>

@@ -12,6 +12,7 @@ tags:
 subtitle: ''
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>I was reading a <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/9780471462422.eoct005">paper on calculation of sample sizes</a>, and I inevitably came across the topic of <strong>statistical power</strong>. Essentially, when you’re designing on experiment, the sample size is an important factor to consider due to limiting resources. You want to have a sample size that is neither too small (which could result in high chance of failure to detect true differences) nor too big (potential waste of resources, albeit yielding better estimation).</p>
@@ -47,7 +48,7 @@ A complement to this would be <strong>false negative rate</strong> (Type II Erro
 </div>
 <div id="power-calculation" class="section level2">
 <h2>Power Calculation</h2>
-<p><a href="https://knowyourmeme.com/memes/its-over-9000"><img src="/img/itsover9000.jpg" alt="Goku’s Power" style="width:50.0%" /></a></p>
+<p><a href="https://knowyourmeme.com/memes/its-over-9000"><img src="/img/itsover9000.jpg" style="width:50.0%" alt="Goku’s Power" /></a></p>
 <p>Calculating the power of a test is fairly simple once divided into steps. Power is calculated based on the significance threshold and the alternative curve. So I’ll first have to calculate the threshold, which is determined by the null distribution. Once the threshold is calculated, I identify the overlap between the area of rejecting the null hypothsis and the area of the alternative distribution.</p>
 <ol style="list-style-type: decimal">
 <li>Identify null distribution and alternative distribution.</li>

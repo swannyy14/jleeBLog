@@ -1,0 +1,66 @@
+baseurl: https://www.casualinf.com
+DefaultContentLanguage: en
+title: Casual Inference
+theme: beautifulhugo
+metaDataFormat: yaml
+pygmentsStyle: trac
+pygmentsUseClasses: yes
+pygmentsCodeFences: yes
+pygmentsCodefencesGuessSyntax: yes
+Params:
+  comments: yes
+  commit: no
+  dateFormat: January 2, 2006
+  delayDisqus: yes
+  favicon: img/favicon.ico
+  logo: img/avatar-icon.png
+  mainSections:
+    - post
+    - posts
+  readingTime: yes
+  rss: yes
+  showRelatedPosts: yes
+  socialShare: yes
+  subtitle: A blog significantly on statistics
+  useHLJS: yes
+  wordCount: yes
+Author:
+#  500px: username
+#  bandcamp: username
+#  bitbucket: username
+#  codepen: username
+  email: youremail@domain.com
+#  facebook: username
+  github: username
+#  gitlab: username
+#  instagram: username
+#  itchio: username
+#  kaggle: username
+  linkedin: username
+#  mastodon: url
+  name: John Lee
+#  paypal: username
+#  reddit: username
+#  slack: username
+#  snapchat: username
+#  soundcloud: username
+#  spotify: username
+#  stackoverflow: users/XXXXXXX/username
+#  telegram: username
+#  twitter: username
+#  vk: username
+  website: www.casualinf.com
+#  weibo: username
+#  xing: username
+#  youtube: user/username
+menu:
+  main:
+    - name: Blog
+      url: ''
+      weight: 1
+    - name: About
+      url: page/about/
+      weight: 3
+    - name: Tags
+      url: tags
+      weight: 3
