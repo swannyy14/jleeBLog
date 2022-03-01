@@ -4,7 +4,7 @@ subtitle: Short Introduction about myself
 comments: false
 ---
 
-<img src="/img/me_thinking_pic.jpg">
+![Picture of me](/img/me_thinking_pic2.jpg)
 
 My English name is John Lee and my Korean name is Lee SooHwan.
 

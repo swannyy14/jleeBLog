@@ -212,7 +212,7 @@ plot2 <-  ggplot(mydf) +
   coord_flip() +
   xlab(NULL)
 
-ggsave(filename = "sort_comparison_gg2.png", plot = plot2, path = "../../static/img")
+ggsave(filename = "sort_comparison_gg2.png", plot = plot2, path = "../../static/img/2019-08-04-sorting-comparison-pt-2")
 
 # ggplot(filter(mydf, N == "100")) +
 #   geom_boxplot(aes(x = case, y = log(time), fill = expr)) +

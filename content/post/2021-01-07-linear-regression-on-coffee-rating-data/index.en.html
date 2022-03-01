@@ -313,7 +313,7 @@ print(ridge_final$a0)</code></pre>
 
 # choose lambda.1se
 print(lasso$lambda.1se)</code></pre>
-<pre><code>## [1] 0.008229747</code></pre>
+<pre><code>## [1] 0.009095277</code></pre>
 <pre class="r"><code>lasso_final &lt;- glmnet(
   x = as.matrix(cofdat[, -1]),
   y = cofdat$total_cup_points,
@@ -323,21 +323,21 @@ print(lasso$lambda.1se)</code></pre>
 )
 
 print(lasso_final$a0)</code></pre>
-<pre><code>##        s0 
-## 0.4365004</code></pre>
+<pre><code>##       s0 
+## 0.486362</code></pre>
 <pre class="r"><code>print(lasso_final$beta)</code></pre>
 <pre><code>## 14 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
 ##                             s0
-## aroma                0.9898702
-## flavor               1.0154765
-## aftertaste           1.0027773
-## acidity              0.9864861
-## body                 0.9856087
-## balance              1.0016122
-## uniformity           0.9944713
-## clean_cup            0.9956102
-## sweetness            0.9886372
-## cupper_points        0.9881835
+## aroma                0.9884542
+## flavor               1.0168211
+## aftertaste           1.0030134
+## acidity              0.9852781
+## body                 0.9839906
+## balance              1.0016683
+## uniformity           0.9935998
+## clean_cup            0.9951121
+## sweetness            0.9875308
+## cupper_points        0.9874171
 ## moisture             .        
 ## category_one_defects .        
 ## category_two_defects .        
