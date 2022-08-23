@@ -1,0 +1,206 @@
+---
+title: woRdle Play
+author: John Lee
+date: '2022-08-23'
+slug: []
+categories:
+  - coding
+tags:
+  - coding
+  - prediction
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>After watching 3Blue1Brown’s <a href="https://www.youtube.com/watch?v=v68zYyaEmEA">video</a> on solving Wordle using information theory, I’ve decided to try my own method using a similar method using probability. His take on using word frequency and combining this with expected information gain quantified by bits for finding the solution was interesting. This is a great approach, especially when playing against a person, who may chose to play a word that’s not in the predefined list of the official <a href="https://www.nytimes.com/games/wordle/index.html">Wordle webiste</a>. In fact, the Wordle site has 2,315 words in play when in reality over 13,000 words could be played - although this may lead to some heated debate.</p>
+<p>I wanted to keep the problem simple and focus only on the word list defined and played by the official Wordle site. Furthermore, instead of using “Bits” of information to measure the average information gain, I’ll be using raw proportions of possible words removed. At every step, I’ll be looking for words that remove the highest proportion of words on average by considering the possibility of all the remaining answers given next guess.</p>
+<p>In this post I’ll share my R code for core functions of wordle such as evaluating a guess based on a stipulated answer as well as choosing for the next best guess.</p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>First, I need functions to imitate the guess evaluations at every step of wordle.</p>
+<p><code>check_answer</code> takes a guess and an answer, which then returns a length 5 character vector consisting of <code>"x"</code>, <code>"o"</code>, and <code>"p"</code>. <code>"x"</code> indicates that the guessed letter is not in the solution. <code>"o"</code> indicates that the guessed letter is in the correct position. Finally, <code>"p"</code> indicates that the guessed letter is in the solution, but not in the right position. For simplicity and speed, each “word” is represented as a character vector of length 5, each element being a letter.</p>
+<pre class="r"><code>suppressPackageStartupMessages(library(stringr))
+
+check_answer &lt;- function(g, ans) {
+  # g is guess, ans is the answer
+  # return a 5 length vector that is a combination of &quot;x&quot;, &quot;o&quot;, &quot;p&quot;
+  # &quot;x&quot;: the letter is not in the word
+  # &quot;o&quot;: the letter is not in the word and in the right position
+  # &quot;p&quot;: the letter is not in the word but in the wrong position
+  key &lt;- rep(&quot;x&quot;, 5)
+  match_letter &lt;- g == ans
+  key[match_letter] &lt;- &quot;o&quot;
+  ans[match_letter] &lt;- NA
+  
+  for (i in which(!match_letter)) {
+    if (any(ans == g[i], na.rm = TRUE)) {
+      key[i] &lt;- &quot;p&quot;
+      ans[match(g[i], ans)] &lt;- NA
+    }
+  }
+  
+  return(key)
+}
+
+split_word &lt;- function(x) {
+  if (length(x) != 5) {
+    x &lt;- strsplit(x, split = &quot;&quot;)[[1]]
+  }
+  return(x)
+}</code></pre>
+<p><code>keep</code> filters valid and invalid words given the current guess and key. This looked simple at first, but I needed to account for words with multiple instances of the same letter. So I had to take a slightly different approach for checking <code>"p"</code> and <code>"x"</code>. I will mention this later, but this may be the bottleneck when I am trying to check thousands of guesses against thousands of possible solutions.</p>
+<pre class="r"><code>keep &lt;- function(w, g, key) {
+  # based on g and key deicde whether or not to keep w
+  
+  # w: word to decide whether or not to keep
+  # g: guess word
+  
+  # exclude based on &quot;o&quot;
+  o &lt;- key == &quot;o&quot;
+  if (any(g[o] != w[o])) return(FALSE)
+  
+  # exclude based on &quot;p&quot;
+  p &lt;- which(key == &quot;p&quot;)
+  if (length(p) != 0) {
+    if (any(w[p] == g[p])) return(FALSE)
+    for (i in p) {
+      if (!any(w[!o] == g[i])) return(FALSE)
+      w[!o][match(g[i], w[!o])] &lt;- &quot;&quot;
+    }
+  }
+  
+  # exclude based on &quot;x&quot;
+  x &lt;- key == &quot;x&quot;
+  if (sum(x) &gt; 0) {
+    if (any(g[x] %in% w[!o])) return(FALSE)
+  }
+  
+  return(TRUE)
+}
+keepV &lt;- Vectorize(keep, c(&quot;w&quot;))</code></pre>
+<p>Now that we have functions to evaluate guesses and filter words, we can move on to guess scoring and solving stage.</p>
+</div>
+<div id="scoring" class="section level2">
+<h2>Scoring</h2>
+<p>By <span class="math inline">\(i^{th}\)</span> guess, I have <span class="math inline">\(n_i\)</span> remaining possible words. The goal is to choose the next guess such that the maximum number of words outs of <span class="math inline">\(n_i\)</span> possibilities are eliminated while maintaining the possibility of getting the right word. At each guess, I consider all words regardless of validity. That is, all words are scored even if they are not the answer. To score each word, I iterate through each possible solution from which I obtain the key, and then count how many words are eliminated based on the guess and key. This proportion is averaged and then used as the score. The word with the highest score is the next guess. Potential problem I see with this method is that as we narrow down the possibilities, this algorithm might still choose a word that’s not a possibility. Therefore, I add an extra weight of <span class="math inline">\(\frac{1}{n_i}\)</span> to words that could be the answer. This way, as I narrow down the possibilities, I am preferring possible answers over others with the same expected information.</p>
+<p>In notations, let</p>
+<p><span class="math inline">\(n_i\)</span> = number of possible solutions after <span class="math inline">\(i^{th}\)</span> guess</p>
+<p><span class="math inline">\(g\)</span> = word for guessing</p>
+<p><span class="math inline">\(w_i^{(j)}\)</span> = <span class="math inline">\(j^{th}\)</span> word in the list of possible solution after <span class="math inline">\(i^{th}\)</span> guess</p>
+<p><span class="math inline">\(k_{g,w}\)</span> = key based on guess <span class="math inline">\(g\)</span> and solution <span class="math inline">\(w\)</span></p>
+<p><span class="math inline">\(keep(w, g, k)\)</span> = Whether or not to keep word <span class="math inline">\(w\)</span> with guess <span class="math inline">\(g\)</span> and key <span class="math inline">\(k\)</span></p>
+<p>Then score for word <span class="math inline">\(g\)</span> for <span class="math inline">\((i+1)^{th}\)</span> guess is</p>
+<p><span class="math inline">\(score_i(g) = \dfrac{1}{n_i}\sum_{y=1}^{n_i}\dfrac{\sum_{z=1}^{n_i} keep(w_i^{(z)},g,k_{g,w_i^{(y)}})}{n_i} + \dfrac{1}{n_i}I(g \in w_i)\)</span></p>
+<p>Now, to translate into code:</p>
+<pre class="r"><code>update_candidates &lt;- function(clist, g, key) {
+  clist_return &lt;- list()
+  keep_words &lt;- unlist(lapply(clist, function(x) keep(x, g, key)))
+  return(clist[keep_words])
+}
+
+score_next_guess &lt;- function(clist, g) {
+  # calculate the average proportion removed for all possible words
+  key_list &lt;- lapply(clist, function(x) check_answer(g, x))
+  
+  unique_key_list &lt;- unique(key_list)
+  unique_key_remove_prop &lt;- sapply(unique_key_list, function(x) sum(!keepV(clist, g, x))) / length(clist)
+  names(unique_key_remove_prop) &lt;- sapply(unique_key_list, function(x) paste(x, collapse = &quot;&quot;))
+  
+  key_list_tmp &lt;- sapply(key_list, function(x) paste(x, collapse = &quot;&quot;))
+  final_score &lt;- mean(unique_key_remove_prop[key_list_tmp])
+
+  # if the guess is in the included list, upweight the score
+  if (list(g) %in% clist) {
+    final_score &lt;- final_score + 1/length(clist)
+  }
+  
+  # on average the guess removes this proportion of answers
+  return(final_score)
+}
+
+score_all &lt;- function(wlist, clist) {
+  sapply(wlist, function(x) score_next_guess(clist, x))
+}</code></pre>
+<p><code>clist</code> is a list of possible words (“candidate list”) which is updated at every iteration.</p>
+<p><code>score_next_guess</code> takes a <code>clist</code> and the next guess and scores the word; <code>score_all</code> is a vectorized version of <code>score_next_guess</code>.</p>
+</div>
+<div id="bringing-it-all-together" class="section level2">
+<h2>Bringing it all Together</h2>
+<p>The following function brings the previous functions together:</p>
+<pre class="r"><code>next_guess &lt;- function(wordle_list, clist, guess, key, message_next_guess = TRUE) {
+  # update clist, print the next best guess, return data.frame with scores
+  clist &lt;- update_candidates(clist, guess, key)
+  all_scores &lt;- score_all(wordle_list, clist)
+  score_data &lt;- data.frame(words = sapply(wordle_list, function(x) paste(x, collapse = &quot;&quot;)), score = all_scores)
+  
+  best_word &lt;- score_data$words[score_data$score == max(score_data$score)]
+  best_word &lt;- sample(best_word, 1)
+  
+  if (message_next_guess) {
+    message(&quot;Recommended next word: &quot;, best_word)
+  }
+  
+  return(list(clist = clist, score_data = score_data[order(score_data$score, decreasing = TRUE),], next_guess = split_word(best_word)))
+}</code></pre>
+<p>It takes a list of all words, current <code>clist</code>, current guess, and the key. It first updates the <code>clist</code>, calculates the score for all words, and chooses the best word based on the score. Then returns the updated <code>clist</code>, a <code>data.frame</code> of the words and scores, and the next guess. With this, we are able to retrieve the next best guess and assess the scores of other words.</p>
+</div>
+<div id="in-practice" class="section level2">
+<h2>In Practice</h2>
+<p>It is August 23, 2022 at the time of writing this, and I will apply this method to today’s Wordle challenge.</p>
+<p>I’ll start with a random word “sigma” and go on from there. We get no match for all letters.</p>
+<pre class="r"><code># read in word list
+wordle &lt;- readLines(&quot;wordle_list.txt&quot;)
+wordle_list &lt;- strsplit(wordle, split = &quot;&quot;)
+
+# create clist
+clist &lt;- wordle_list
+
+set.seed(1114)
+guess_out &lt;- next_guess(wordle_list, clist, split_word(&quot;sigma&quot;), split_word(&quot;xxxxx&quot;))</code></pre>
+<pre><code>## Recommended next word: tenor</code></pre>
+<pre class="r"><code>length(guess_out$clist)</code></pre>
+<pre><code>## [1] 458</code></pre>
+<p>The first guess was actually able to weed out 1857 possibilities and narrow down to 458 possible answers.</p>
+<p>The next best guess comes out to be “tenor”, with the score of 0.977. This is what the top and bottom 10 scores look like:</p>
+<pre class="r"><code>head(guess_out$score_data)</code></pre>
+<pre><code>##      words     score
+## 2029 tenor 0.9772697
+## 495  cruel 0.9759063
+## 1619 route 0.9747907
+## 487  crone 0.9743045
+## 530  decor 0.9742949
+## 2091 tower 0.9734750</code></pre>
+<pre class="r"><code>tail(guess_out$score_data)</code></pre>
+<pre><code>##      words score
+## 69   amass     0
+## 74   amiss     0
+## 835  gamma     0
+## 1185 magma     0
+## 1190 mamma     0
+## 1754 sigma     0</code></pre>
+<p>You can expect to get most information, on average, from the top words and the last information from the bottom words. You can see that in this case, the top words have no overlap with the word “sigma” and the bottom words have completely overlap with the word, making it pointless to use those words.</p>
+<pre class="r"><code>list(split_word(&quot;tenor&quot;)) %in% guess_out$clist</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>(guess_out$score_data$score[1] - (1 / length(guess_out$clist))) * length(guess_out$clist)</code></pre>
+<pre><code>## [1] 446.5895</code></pre>
+<p>The score tells us that we can expect this word to remove ~447 words, leaving us with 11 possibilities.</p>
+<p>Moving onto the next guess, tenor, we get no match on first and last letter, and positional match on the middle three.</p>
+<pre class="r"><code>guess_out &lt;- next_guess(wordle_list, guess_out$clist, guess_out$next_guess, split_word(&quot;xpppx&quot;))</code></pre>
+<pre><code>## Recommended next word: coven</code></pre>
+<pre class="r"><code>length(guess_out$clist)</code></pre>
+<pre><code>## [1] 11</code></pre>
+<p>Next word is coven. “tenor” was able to bring the number of possibilities down to 11.</p>
+<pre class="r"><code>guess_out &lt;- next_guess(wordle_list, guess_out$clist, guess_out$next_guess, split_word(&quot;xoooo&quot;))</code></pre>
+<pre><code>## Recommended next word: woven</code></pre>
+<p>Next word is woven, which turns out to be the correct answer! We were able to get the correct word in 4 tries.</p>
+</div>
+<div id="discussion" class="section level2">
+<h2>Discussion</h2>
+<p>There is a lot of room for improvement in terms of performance. The code takes a long time to go through the word list in the first attempt due to large number of possible words. The code may not be well optimized. Other choices in programming language could also help. In the last example, the first iteration with the word “sigma” had taken a few minutes to run, and this is likely the case most of the time. Another solution is to add parallelization with <code>parallel</code> package to speed up. There could also be a more optimal weight added to possible word solutions. I want to spend some time addressing some of the issues. Furthermore, it could be interesting to do some additional analysis to see if I reach the same conclusion as 3Blue1Brown in terms of the most strategic word, and compare performances.</p>
+</div>

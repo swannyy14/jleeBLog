@@ -1,0 +1,240 @@
+---
+title: woRdle Play
+author: John Lee
+date: '2022-08-23'
+slug: []
+categories:
+  - coding
+tags:
+  - coding
+  - prediction
+type: ''
+subtitle: ''
+image: ''
+---
+
+## Intro
+
+After watching 3Blue1Brown's [video](https://www.youtube.com/watch?v=v68zYyaEmEA) on solving Wordle using information theory, I've decided to try my own method using a similar method using probability. His take on using word frequency and combining this with expected information gain quantified by bits for finding the solution was interesting. This is a great approach, especially when playing against a person, who may chose to play a word that's not in the predefined list of the official [Wordle webiste](https://www.nytimes.com/games/wordle/index.html). In fact, the Wordle site has 2,315 words in play when in reality over 13,000 words could be played - although this may lead to some heated debate.
+
+I wanted to keep the problem simple and focus only on the word list defined and played by the official Wordle site. Furthermore, instead of using "Bits" of information to measure the average information gain, I'll be using raw proportions of possible words removed. At every step, I'll be looking for words that remove the highest proportion of words on average by considering the possibility of all the remaining answers given next guess.
+
+In this post I'll share my R code for core functions of wordle such as evaluating a guess based on a stipulated answer as well as choosing for the next best guess.
+
+## Setup
+
+First, I need functions to imitate the guess evaluations at every step of wordle.
+
+`check_answer` takes a guess and an answer, which then returns a length 5 character vector consisting of `"x"`, `"o"`, and `"p"`. `"x"` indicates that the guessed letter is not in the solution. `"o"` indicates that the guessed letter is in the correct position. Finally, `"p"` indicates that the guessed letter is in the solution, but not in the right position. For simplicity and speed, each "word" is represented as a character vector of length 5, each element being a letter. 
+
+```{r check_answer_chunk}
+suppressPackageStartupMessages(library(stringr))
+
+check_answer <- function(g, ans) {
+  # g is guess, ans is the answer
+  # return a 5 length vector that is a combination of "x", "o", "p"
+  # "x": the letter is not in the word
+  # "o": the letter is not in the word and in the right position
+  # "p": the letter is not in the word but in the wrong position
+  key <- rep("x", 5)
+  match_letter <- g == ans
+  key[match_letter] <- "o"
+  ans[match_letter] <- NA
+  
+  for (i in which(!match_letter)) {
+    if (any(ans == g[i], na.rm = TRUE)) {
+      key[i] <- "p"
+      ans[match(g[i], ans)] <- NA
+    }
+  }
+  
+  return(key)
+}
+
+split_word <- function(x) {
+  if (length(x) != 5) {
+    x <- strsplit(x, split = "")[[1]]
+  }
+  return(x)
+}
+```
+
+`keep` filters valid and invalid words given the current guess and key. This looked simple at first, but I needed to account for words with multiple instances of the same letter. So I had to take a slightly different approach for checking `"p"` and `"x"`. I will mention this later, but this may be the bottleneck when I am trying to check thousands of guesses against thousands of possible solutions.
+
+```{r keep}
+keep <- function(w, g, key) {
+  # based on g and key deicde whether or not to keep w
+  
+  # w: word to decide whether or not to keep
+  # g: guess word
+  
+  # exclude based on "o"
+  o <- key == "o"
+  if (any(g[o] != w[o])) return(FALSE)
+  
+  # exclude based on "p"
+  p <- which(key == "p")
+  if (length(p) != 0) {
+    if (any(w[p] == g[p])) return(FALSE)
+    for (i in p) {
+      if (!any(w[!o] == g[i])) return(FALSE)
+      w[!o][match(g[i], w[!o])] <- ""
+    }
+  }
+  
+  # exclude based on "x"
+  x <- key == "x"
+  if (sum(x) > 0) {
+    if (any(g[x] %in% w[!o])) return(FALSE)
+  }
+  
+  return(TRUE)
+}
+keepV <- Vectorize(keep, c("w"))
+```
+
+
+Now that we have functions to evaluate guesses and filter words, we can move on to guess scoring and solving stage.
+
+## Scoring
+
+By $i^{th}$ guess, I have $n_i$ remaining possible words. The goal is to choose the next guess such that the maximum number of words outs of $n_i$ possibilities are eliminated while maintaining the possibility of getting the right word. At each guess, I consider all words regardless of validity. That is, all words are scored even if they are not the answer. To score each word, I iterate through each possible solution from which I obtain the key, and then count how many words are eliminated based on the guess and key. This proportion is averaged and then used as the score. The word with the highest score is the next guess. Potential problem I see with this method is that as we narrow down the possibilities, this algorithm might still choose a word that's not a possibility. Therefore, I add an extra weight of $\frac{1}{n_i}$ to words that could be the answer. This way, as I narrow down the possibilities, I am preferring possible answers over others with the same expected information.
+
+In notations, let
+
+$n_i$ = number of possible solutions after $i^{th}$ guess
+
+$g$ = word for guessing
+
+$w_i^{(j)}$ = $j^{th}$ word in the list of possible solution after $i^{th}$ guess
+
+$k_{g,w}$ = key based on guess $g$ and solution $w$
+
+$keep(w, g, k)$ = Whether or not to keep word $w$ with guess $g$ and key $k$
+
+Then score for word $g$ for $(i+1)^{th}$ guess is
+
+$score_i(g) = \dfrac{1}{n_i}\sum_{y=1}^{n_i}\dfrac{\sum_{z=1}^{n_i} keep(w_i^{(z)},g,k_{g,w_i^{(y)}})}{n_i} + \dfrac{1}{n_i}I(g \in w_i)$
+
+Now, to translate into code:
+
+```{r scoring}
+update_candidates <- function(clist, g, key) {
+  clist_return <- list()
+  keep_words <- unlist(lapply(clist, function(x) keep(x, g, key)))
+  return(clist[keep_words])
+}
+
+score_next_guess <- function(clist, g) {
+  # calculate the average proportion removed for all possible words
+  key_list <- lapply(clist, function(x) check_answer(g, x))
+  
+  unique_key_list <- unique(key_list)
+  unique_key_remove_prop <- sapply(unique_key_list, function(x) sum(!keepV(clist, g, x))) / length(clist)
+  names(unique_key_remove_prop) <- sapply(unique_key_list, function(x) paste(x, collapse = ""))
+  
+  key_list_tmp <- sapply(key_list, function(x) paste(x, collapse = ""))
+  final_score <- mean(unique_key_remove_prop[key_list_tmp])
+
+  # if the guess is in the included list, upweight the score
+  if (list(g) %in% clist) {
+    final_score <- final_score + 1/length(clist)
+  }
+  
+  # on average the guess removes this proportion of answers
+  return(final_score)
+}
+
+score_all <- function(wlist, clist) {
+  sapply(wlist, function(x) score_next_guess(clist, x))
+}
+
+```
+
+`clist` is a list of possible words ("candidate list") which is updated at every iteration.
+
+`score_next_guess` takes a `clist` and the next guess and scores the word; `score_all` is a vectorized version of `score_next_guess`.
+
+## Bringing it all Together
+
+The following function brings the previous functions together:
+
+```{r}
+next_guess <- function(wordle_list, clist, guess, key, message_next_guess = TRUE) {
+  # update clist, print the next best guess, return data.frame with scores
+  clist <- update_candidates(clist, guess, key)
+  all_scores <- score_all(wordle_list, clist)
+  score_data <- data.frame(words = sapply(wordle_list, function(x) paste(x, collapse = "")), score = all_scores)
+  
+  best_word <- score_data$words[score_data$score == max(score_data$score)]
+  best_word <- sample(best_word, 1)
+  
+  if (message_next_guess) {
+    message("Recommended next word: ", best_word)
+  }
+  
+  return(list(clist = clist, score_data = score_data[order(score_data$score, decreasing = TRUE),], next_guess = split_word(best_word)))
+}
+```
+
+It takes a list of all words, current `clist`, current guess, and the key. It first updates the `clist`, calculates the score for all words, and chooses the best word based on the score. Then returns the updated `clist`, a `data.frame` of the words and scores, and the next guess. With this, we are able to retrieve the next best guess and assess the scores of other words.
+
+## In Practice
+
+It is August 23, 2022 at the time of writing this, and I will apply this method to today's Wordle challenge.
+
+I'll start with a random word "sigma" and go on from there. We get no match for all letters.
+
+```{r}
+# read in word list
+wordle <- readLines("wordle_list.txt")
+wordle_list <- strsplit(wordle, split = "")
+
+# create clist
+clist <- wordle_list
+
+set.seed(1114)
+guess_out <- next_guess(wordle_list, clist, split_word("sigma"), split_word("xxxxx"))
+```
+
+```{r}
+length(guess_out$clist)
+```
+
+The first guess was actually able to weed out 1857 possibilities and narrow down to 458 possible answers.
+
+The next best guess comes out to be "tenor", with the score of 0.977. This is what the top and bottom 10 scores look like:
+
+```{r}
+head(guess_out$score_data)
+tail(guess_out$score_data)
+```
+
+You can expect to get most information, on average, from the top words and the last information from the bottom words. You can see that in this case, the top words have no overlap with the word "sigma" and the bottom words have completely overlap with the word, making it pointless to use those words.
+
+```{r}
+list(split_word("tenor")) %in% guess_out$clist
+(guess_out$score_data$score[1] - (1 / length(guess_out$clist))) * length(guess_out$clist)
+```
+
+The score tells us that we can expect this word to remove ~447 words, leaving us with 11 possibilities.
+
+Moving onto the next guess, tenor, we get no match on first and last letter, and positional match on the middle three.
+
+```{r}
+guess_out <- next_guess(wordle_list, guess_out$clist, guess_out$next_guess, split_word("xpppx"))
+length(guess_out$clist)
+```
+
+Next word is coven. "tenor" was able to bring the number of possibilities down to 11.
+
+```{r}
+guess_out <- next_guess(wordle_list, guess_out$clist, guess_out$next_guess, split_word("xoooo"))
+```
+
+Next word is woven, which turns out to be the correct answer! We were able to get the correct word in 4 tries.
+
+## Discussion
+
+There is a lot of room for improvement in terms of performance. The code takes a long time to go through the word list in the first attempt due to large number of possible words. The code may not be well optimized. Other choices in programming language could also help. In the last example, the first iteration with the word "sigma" had taken a few minutes to run, and this is likely the case most of the time. Another solution is to add parallelization with `parallel` package to speed up. There could also be a more optimal weight added to possible word solutions. I want to spend some time addressing some of the issues. Furthermore, it could be interesting to do some additional analysis to see if I reach the same conclusion as 3Blue1Brown in terms of the most strategic word, and compare performances.
+
