@@ -1,0 +1,149 @@
+---
+title: Creating Executable Shiny App for Local Use
+author: John Lee
+date: '2024-12-27'
+slug: []
+categories:
+  - coding
+  - R
+tags:
+  - visualization
+type: ''
+subtitle: ''
+image: ''
+---
+
+I recently developed an R Shiny app for my team. Hosting Shiny app at [shinyapps.io](https://www.shinyapps.io/) is a great and easy way to quickly deploy the app online and share with others. The website does allow you to host a few shiny apps for free, but there are some limitations. There is a cap to the number of hours apps can run monthly, and anyone can access the app once it's deployed. Authentication feature is only provided for more premium tiers, which becomes a problem if the app accesses some sensitive databases behind a firewall that I would rather not share with the public.
+
+As this is the only Shiny app developed for my team, it is hard to justify the high costs of premium tiers. So what are some alternatives? I could ask the IT in my team to help me set up a custom server. If I plan to develop more apps, this could be a viable alternative. I preferred to keep it as simple as possible without having too many people involved for the time being. 
+
+Since my teammates are already familiar with R and I version control my work through Github, I could simply tell people to clone my project and run Shiny through R Studio every time. This still required a series of steps for running the app locally. After some Google search, I decided to create executable files (`.bat` for Windows users and `.sh` for MacOS users) that contains a set of instructions to run the app by calling R, and I'll share how I did it in this post.
+
+Before I go on, there are many [alternatives](https://stackoverflow.com/questions/69515395/how-to-run-a-shiny-app-as-a-standalone-application) as listed in this post that you could check out. I ended up not choosing these approaches for several reasons. Some approaches felt like an overkill for my need, so I didn't want to spend time trying to understand the ins and outs, especially when the latest update for some projects date a few years back. I thought I would try a straightforward approach that simply works and doesn't require other dependencies.
+
+## Shiny app Structure
+
+This is how I set up my Shiny app project
+
+```
+.
+├── .env
+├── R/
+├── data/
+├── app.R
+├── renv/
+├── renv.lock
+├── shiny_cmd.R
+├── run_shiny.bat
+├── run_shiny.sh
+├── .Rprofile
+├── project_name.Rproj
+├── README.md
+```
+
+### Environment File `.env`
+
+My app requires secret keys and database connections, which normally wouldn't be shared via Github but through other more secure methods. I usually save this information in an environment file and read these variables through R. This is also where I define an environment variable `Rscript`, which contains the path to `Rscript.exe` executable. I noticed that this is normally already set up in systems like Mac OS but not in Windows.
+
+For example, my `.env` file might look like this:
+
+```
+SECRET_KEY=123456abcde
+Rscript="C:\Program Files\R\R-4.4.2\bin\Rscript.exe"
+```
+
+### `R/` and `app.R`
+
+The main script that runs the shiny app is `app.R`, which defines UI and Server portion of the app. Any helper script is contained in `R/`, which should automatically run when running the app.
+
+### `renv` Files
+
+R package versions pose challenges in sharing the app for local use. As the app gets more complicated and the list of dependencies expands, there will be more inconsistencies in the package versions between users, which could break the code or yield different results. Some users might not even have the required packages to begin with. To ensure consistency and replicability, I use the [`renv`](https://rstudio.github.io/renv/articles/renv.html) package. `renv` scans packages and package versions used in my project and saves them as a lockfile (`renv.lock`). This way, all that the users have to do is run `renv::restore()` after cloning and opening the R project to replicate my working environment. This does require users to have `renv` package installed to begin with, and work in the R project session, which is why I include `.Rprofile` and `.Rproj`.
+
+I only had positive experience from using `renv` especially in collaborative work, so I highly recommend learning about this package and applying to projects using R.
+
+### Executable Files
+
+Here I find the path to the Shiny project, read `Rscript` environment variable from `.env`, and then run `Rscript` on `shiny_cmd.R` R script.
+
+**`run_shiny.bat`** (for Windows)
+
+```
+@echo off
+
+REM set the path to the R script to execute
+set ScriptDir=%~dp0
+set RFilePath=%ScriptDir%app.R
+
+REM Check if the .env file exists
+if not exist "%ScriptDir%.env" (
+    echo .env file not found at "%ScriptDir%".
+    exit /b 1
+)
+
+REM Load the .env file
+for /f "usebackq tokens=1,2 delims== eol=#" %%A in ("%ScriptDir%.env") do (
+    set "%%A=%%B"
+)
+
+REM execute the R script
+cd %ScriptDir%
+%Rscript% shiny_cmd.R "%ScriptDir%
+
+exit
+```
+
+**`run_shiny.sh`** (for Mac)
+
+```{bash, eval=FALSE}
+#!/bin/bash
+
+# Set the path to the R script to execute
+ScriptDir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+RFilePath="$ScriptDir/app.R"
+
+# Check if the .env file exists
+if [ ! -f "$ScriptDir/.env" ]; then
+    echo ".env file not found at $ScriptDir."
+    exit 1
+fi
+
+# Load the .env file
+set -a # Automatically export all variables
+. "$ScriptDir/.env"
+set +a
+
+# Execute the R script
+cd "$ScriptDir" || exit
+"$Rscript" shiny_cmd.R "$ScriptDir"
+
+exit 0
+```
+
+Why don't I run Rscript on `app.R`? I haven't quite figured out how to invoke the app inside the project environment through Rscript command. So I run `shiny_cmd.R` instead, which loads the project first and then run the app.
+
+**`shiny_cmd.R`**
+
+```{r, eval=FALSE}
+library(renv)
+library(shiny)
+
+# get first command line argument
+args <- commandArgs(trailingOnly = TRUE)
+
+path <- args[1]
+
+# load the project to use the environment
+renv::load(project = file.path(path))
+
+# run the shiny app
+runApp(".", launch.browser = TRUE)
+```
+
+It looks like I could use the `-e` flag in `Rscript` to load the project environment and run the app, which I will try in the future.
+
+### Running the App
+
+With proper setup, this should be enough to run the app. The user can either run it through Rstudio as usual or run the appropriate executable through command prompt. On Windows, you can also create a shortcut to the `.bat` file and place it on the desktop, and double click on it.
+
+The batch scripts can look a little rough as I made use of Chat GPT and Stack Overflow to get it to do what I needed. I'm sure there are ways to improve the scripts and the pipeline. My limited knowledge in computer science and programming brought me to this solution, but there are some processes that I'd like to streamline, such as automatically finding the Rscript path and installing a command to run the Shiny app in Mac OS. For now, I hope this post can come in handy for those who want to share their Shiny apps and face the same problem that I did. 

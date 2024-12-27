@@ -29,14 +29,14 @@ Author:
 #  bandcamp: username
 #  bitbucket: username
 #  codepen: username
-  email: youremail@domain.com
+#  email: youremail@domain.com
 #  facebook: username
-  github: username
+  github: swannyy14
 #  gitlab: username
 #  instagram: username
 #  itchio: username
 #  kaggle: username
-  linkedin: username
+  linkedin: johnswanlee
 #  mastodon: url
   name: John Lee
 #  paypal: username
@@ -64,3 +64,8 @@ menu:
     - name: Tags
       url: tags
       weight: 3
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
